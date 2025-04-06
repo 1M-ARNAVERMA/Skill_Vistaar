@@ -1,0 +1,147 @@
+/* style.css */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #dcc2c2;
+    color: #1A3A6C;
+}
+.logo {
+    font-size: 3rem;
+    font-weight: bold;
+}
+.navbar {
+    background-color: #00A859;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    font-size: 2rem;
+    font-weight: bold;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.menu-icon {
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.nav-links a:hover {
+    text-decoration: underline;
+}
+
+.section {
+    padding: 4rem 2rem;
+    text-align: center;
+    background-color: white;
+    margin: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+footer {
+    background-color: #1A3A6C;
+    color: white;
+    text-align: center;
+    padding-bottom: 1rem; 
+    width: 100%;
+    border: none;
+    margin: 0;
+}
+
+.nav1 {
+    background: linear-gradient(to bottom, #00A859, #ffffff);
+    height: 100px; 
+    margin: 0;
+    padding: 0;
+}
+
+.footer-gradient {
+    background: linear-gradient(to top, #1A3A6C, #ffffff);
+    height: 100px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+/* This is For Sidebar*/
+.sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #164288;
+    overflow-x: hidden;
+    transition: 0.3s;
+    padding-top: 60px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    border-color: black;
+    border-width: 100px;
+}
+
+.sidebar a {
+    padding: 15px 20px;
+    text-decoration: none;
+    font-size: 18px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.3s;
+}
+
+.sidebar a:not(.close-btn)::after {
+    content: '⮞';
+    font-weight: bold;
+    margin-left: 10px;
+    color: white;
+    padding: 0;
+}
+
+.sidebar a:hover {
+    background-color: #00A859;
+    color: white;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 5px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.content {
+    display: flex;
+    justify-content: center; 
+    align-items: center;     
+    height: calc(56vh - 70px); 
+    background-color: #ffffff;
+    text-align: center;
+    padding: 20px;
+}
+
+.content h1 {
+    font-size: 3rem;
+    color: #1A3A6C;
+}
+
