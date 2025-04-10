@@ -26,6 +26,10 @@ def mentorship():
 def networking():
     return render_template('networking.html')
 
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
 @app.route('/analyze_skill_gap', methods=['POST'])
 def analyze_skill_gap():
     data = request.get_json()
