@@ -34,12 +34,23 @@ def login():
 def analyze_skill_gap():
     data = request.get_json()
     company = data['company']
-    skills = data['skills']
+    position = data['position']
+    current_skills = [skill.strip().lower() for skill in data['skills'].split(',')]
 
-    # Temporary response
-    return jsonify({
-        "skills": ["AI", "Cloud Computing", "Leadership"]  # mock response
-    })
+    # Example: Logic for mock required skills for a position
+    job_requirements = {
+        "software engineer": ["python", "data structures", "algorithms", "git", "cloud computing", "linux"],
+        "data scientist": ["python", "machine learning", "statistics", "data visualization", "sql", "pandas"],
+        "web developer": ["html", "css", "javascript", "react", "node.js", "git"]
+    }
+
+    role = position.lower()
+    required_skills = job_requirements.get(role, ["communication", "teamwork", "problem-solving"])
+    
+    # Calculate missing skills
+    missing_skills = [skill for skill in required_skills if skill not in current_skills]
+
+    return jsonify({"skills": missing_skills})
 
 if __name__ == '__main__':
     app.run(debug=True)

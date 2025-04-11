@@ -17,37 +17,43 @@
         <form id="skillForm">
             <label>Target Company:</label><br>
             <input type="text" name="company" required><br><br>
-
+    
+            <label>Target Position:</label><br>
+            <input type="text" name="position" required><br><br>
+    
             <label>Your Current Skills (comma-separated):</label><br>
             <textarea name="skills" required></textarea><br><br>
-
+    
             <button type="submit">Analyze</button>
         </form>
-
+    
         <div id="result"></div>
     </div>
+    
     <script>
         const form = document.getElementById("skillForm");
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
-
+    
             const company = form.company.value;
+            const position = form.position.value;
             const skills = form.skills.value;
-
+    
             const response = await fetch("/analyze_skill_gap", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ company, skills })
+                body: JSON.stringify({ company, position, skills })
             });
-
+    
             const data = await response.json();
-
+    
             document.getElementById("result").innerHTML = `
-                <h3>Suggested Skills to Improve:</h3>
+                <h3>Suggested Skills to Improve for <em>${position}</em> at <strong>${company}</strong>:</h3>
                 <ul>${data.skills.map(skill => `<li>${skill}</li>`).join('')}</ul>
             `;
         });
     </script>
+    
     
     <footer>
         <div class="footer-gradient"></div>

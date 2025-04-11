@@ -19,6 +19,12 @@ body {
     align-items: center;
 }
 
+.navbar a{
+    text-decoration: none;
+    color: #ffffff;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
 .logo {
     font-size: 2rem;
     font-weight: bold;
