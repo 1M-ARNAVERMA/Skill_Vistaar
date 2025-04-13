@@ -4,19 +4,145 @@
     <meta charset="UTF-8">
     <title>Salary Forecasting</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
+    <style>
+        .form-container {
+            max-width: 700px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
 
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #1A3A6C;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #1A3A6C;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #15406c;
+        }
+
+        #result-container {
+            margin-top: 20px;
+            background-color: #f4fdf7;
+            padding: 20px;
+            border-radius: 6px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <div class="navbar">
         <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
     </div>
-    <div class="content">
-        <h1>Salary Forecasting</h1>
-        <p>Get insights into expected salaries based on roles and industries.</p>
+
+    <div class="form-container">
+        <h2>Salary Forecasting Tool</h2>
+        <form id="salaryForm">
+            <label for="job">Job Title:</label>
+            <input type="text" id="job" name="job" required>
+
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location" required>
+
+            <label for="experience">Years of Experience:</label>
+            <input type="number" id="experience" name="experience" min="0" required>
+
+            <label for="skills">Current Skills (comma separated):</label>
+            <textarea id="skills" name="skills" rows="4" required></textarea>
+
+            <button type="submit">Get Salary Forecast</button>
+        </form>
+
+        <div id="result-container"></div>
     </div>
+
     <footer>
         <div class="footer-gradient"></div>
         <p>&copy; 2025 Skill Vistaar. All rights reserved.</p>
     </footer>
+
+    <script>
+        const form = document.getElementById("salaryForm");
+        const resultDiv = document.getElementById("result-container");
+
+        const salaryData = {
+            "software engineer": {
+                min: 400000,
+                avg: 800000,
+                max: 1500000,
+                boostSkills: ["System Design", "Cloud Computing", "DSA"]
+            },
+            "data scientist": {
+                min: 500000,
+                avg: 950000,
+                max: 1700000,
+                boostSkills: ["Machine Learning", "Deep Learning", "SQL"]
+            },
+            "web developer": {
+                min: 300000,
+                avg: 600000,
+                max: 1200000,
+                boostSkills: ["React", "Node.js", "REST APIs"]
+            }
+        };
+
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const job = form.job.value.toLowerCase();
+            const location = form.location.value;
+            const experience = form.experience.value;
+            const skills = form.skills.value.toLowerCase().split(",").map(s => s.trim());
+
+            // Clear and hide result initially
+            resultDiv.innerHTML = "";
+            resultDiv.style.display = "none";
+
+            if (!salaryData[job]) {
+                resultDiv.innerHTML = `<p style="color:red;">No data available for "${job}". Try Software Engineer, Data Scientist, or Web Developer.</p>`;
+                resultDiv.style.display = "block";
+                return;
+            }
+
+            const { min, avg, max, boostSkills } = salaryData[job];
+            const missingSkills = boostSkills.filter(skill => !skills.includes(skill.toLowerCase()));
+
+            resultDiv.innerHTML = `
+                <h3>Forecast for ${job.charAt(0).toUpperCase() + job.slice(1)}</h3>
+                <ul>
+                    <li><strong>Minimum Salary:</strong> ₹${min.toLocaleString()}</li>
+                    <li><strong>Average Salary:</strong> ₹${avg.toLocaleString()}</li>
+                    <li><strong>Maximum Salary:</strong> ₹${max.toLocaleString()}</li>
+                </ul>
+                <h4>Skills to Learn & Boost Salary:</h4>
+                <ul>${missingSkills.length ? missingSkills.map(skill => `<li>${skill}</li>`).join('') : '<li>None – You’ve got them all!</li>'}</ul>
+            `;
+
+            resultDiv.style.display = "block";
+        });
+    </script>
 </body>
 </html>
