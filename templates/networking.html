@@ -4,16 +4,145 @@
     <meta charset="UTF-8">
     <title>Networking Opportunities</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
-
 </head>
 <body>
+    
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #1A3A6C;
+}
+
+.section {
+    padding: 40px 20px;
+    margin: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.section h2 {
+    color: #00A859;
+    margin-bottom: 15px;
+}
+
+.section ul {
+    padding-left: 20px;
+}
+
+.section ul li {
+    padding: 8px 0;
+    line-height: 1.6;
+}
+
+.event-list li {
+    font-weight: 500;
+}
+
+.quote {
+    font-style: italic;
+    background: #e7f7ef;
+    border-left: 5px solid #00A859;
+    margin-top: 20px;
+    padding: 15px;
+    color: #333;
+    border-radius: 6px;
+}
+
+    </style>
     <div class="navbar">
         <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
     </div>
-    <div class="content">
-        <h1>Networking Opportunities</h1>
-        <p>Expand your professional network and find new opportunities.</p>
+
+    <div class="section">
+        <h2>🌟 Why Networking Matters</h2>
+        <p>Networking opens doors to mentorship, job opportunities, and insights that aren't available in job listings. Building strong connections accelerates your career journey.</p>
+        <ul>
+            <li>Expand your industry knowledge</li>
+            <li>Meet like-minded professionals</li>
+            <li>Access referral-based job openings</li>
+        </ul>
+        <blockquote class="quote">“Your network is your net worth.” — Porter Gale</blockquote>
     </div>
+
+    <div class="section">
+        <h2>📅 Upcoming & Popular Events</h2>
+        <ul class="event-list">
+            <li><strong>Virtual Tech Meetup - India</strong> – May 10, 2025</li>
+            <li><strong>LinkedIn Career Connect</strong> – June 2, 2025</li>
+            <li><strong>Skill Vistaar Community Q&A Live</strong> – Every Friday at 7 PM</li>
+            <li><strong>Resume Review & Networking Day</strong> – July 15, 2025</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>✅ Networking Do’s & ❌ Don’ts</h2>
+        <ul>
+            <li>✅ Be polite and specific in your approach</li>
+            <li>✅ Send personalized follow-ups</li>
+            <li>❌ Don’t ask for jobs immediately</li>
+            <li>❌ Avoid ghosting your connections</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>🎉 Success Stories</h2>
+        <div class="card-container">
+            <div class="success-card">
+                <h3>Ayushi Sharma</h3>
+                <p>"Skill Vistaar helped me connect with a hiring manager, and I got placed in just 2 weeks!"</p>
+            </div>
+            <div class="success-card">
+                <h3>Rohan Patel</h3>
+                <p>"Thanks to the mentorship sessions, I gained confidence and landed my dream job as a Data Analyst."</p>
+            </div>
+            <div class="success-card">
+                <h3>Sneha Gupta</h3>
+                <p>"Attending the networking webinars introduced me to peers and professionals that changed my path."</p>
+            </div>
+            <div class="success-card">
+                <h3>Aditya Verma</h3>
+                <p>"I never imagined a casual chat in the Skill Vistaar community would lead to an internship offer!"</p>
+            </div>
+        </div>
+    <style>
+        .card-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.success-card {
+    background-color: #ffffff;
+    border-left: 5px solid #00A859;
+    padding: 20px;
+    width: 260px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.success-card:hover {
+    transform: translateY(-5px);
+}
+
+.success-card h3 {
+    color: #1A3A6C;
+    margin-bottom: 10px;
+}
+
+.success-card p {
+    color: #333;
+    font-size: 0.95rem;
+}
+    </style>
+    </div>
+
     <footer>
         <div class="footer-gradient"></div>
         <p>&copy; 2025 Skill Vistaar. All rights reserved.</p>
