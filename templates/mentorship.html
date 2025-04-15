@@ -7,8 +7,20 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='mentorship.css') }}">
 </head>
 <body>
-    <div class="navbar">
-        <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
+    <header>
+        <nav class="navbar">
+            <span class="menu-icon" onclick="openSidebar()">&#9776;</span>
+            <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
+        </nav>
+    </header>
+    
+    <div id="sidebar" class="sidebar">
+        <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">⮿</a>
+        <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
+        <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
+        <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
+        <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
+        <a href="{{ url_for('networking') }}">Networking Opportunities</a>
     </div>
 
     <h1>Meet Our Mentors</h1>
@@ -48,6 +60,16 @@
             <a href="https://en.wikipedia.org/wiki/Sundar_Pichai" class="btn" target="_blank" rel="noopener noreferrer">View Wikipedia Profile</a>
         </div>
     </div>
+
+    <script>
+        function openSidebar() {
+          document.getElementById("sidebar").style.width = "250px";
+        }
+      
+        function closeSidebar() {
+          document.getElementById("sidebar").style.width = "0";
+        }
+      </script>
 
     <footer>
         <div class="footer-gradient"></div>

@@ -63,8 +63,20 @@
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
+    <header>
+        <nav class="navbar">
+            <span class="menu-icon" onclick="openSidebar()">&#9776;</span>
+            <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
+        </nav>
+    </header>
+    
+    <div id="sidebar" class="sidebar">
+        <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">⮿</a>
+        <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
+        <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
+        <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
+        <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
+        <a href="{{ url_for('networking') }}">Networking Opportunities</a>
     </div>
 
     <div class="quiz-container">
@@ -134,7 +146,15 @@
                 radios[i].checked = false;
             }
         }
-
+        
+        function openSidebar() {
+          document.getElementById("sidebar").style.width = "250px";
+        }
+      
+        function closeSidebar() {
+          document.getElementById("sidebar").style.width = "0";
+        }
+      
         function calculateResult() {
             const form = document.forms['quizForm'];
             const values = ['q1', 'q2', 'q3', 'q4', 'q5'].map(q => {

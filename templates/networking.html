@@ -7,14 +7,24 @@
 </head>
 <body>
     
+    <header>
+        <nav class="navbar">
+            <span class="menu-icon" onclick="openSidebar()">&#9776;</span>
+            <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
+        </nav>
+    </header>
+    
+    <div id="sidebar" class="sidebar">
+        <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">⮿</a>
+        <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
+        <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
+        <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
+        <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
+        <a href="{{ url_for('networking') }}">Networking Opportunities</a>
+    </div>
+    
+
     <style>
-        body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-    color: #1A3A6C;
-}
 
 .section {
     padding: 40px 20px;
@@ -53,10 +63,6 @@
 }
 
     </style>
-    <div class="navbar">
-        <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
-    </div>
-
     <div class="section">
         <h2>🌟 Why Networking Matters</h2>
         <p>Networking opens doors to mentorship, job opportunities, and insights that aren't available in job listings. Building strong connections accelerates your career journey.</p>
@@ -140,8 +146,19 @@
     color: #333;
     font-size: 0.95rem;
 }
+
     </style>
     </div>
+
+    <script>
+        function openSidebar() {
+          document.getElementById("sidebar").style.width = "250px";
+        }
+      
+        function closeSidebar() {
+          document.getElementById("sidebar").style.width = "0";
+        }
+      </script>
 
     <footer>
         <div class="footer-gradient"></div>
