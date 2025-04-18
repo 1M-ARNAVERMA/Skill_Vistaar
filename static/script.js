@@ -14,4 +14,3 @@ window.onclick = function(event) {
         closeSidebar();
     }
 };
-

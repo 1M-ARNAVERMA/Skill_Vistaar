@@ -121,6 +121,14 @@
             }
         };
 
+        function openSidebar() {
+          document.getElementById("sidebar").style.width = "250px";
+        }
+      
+        function closeSidebar() {
+          document.getElementById("sidebar").style.width = "0";
+        }
+
         form.addEventListener("submit", function (e) {
             e.preventDefault();
 
@@ -154,15 +162,6 @@
             `;
 
             resultDiv.style.display = "block";
-        
-
-        function openSidebar() {
-          document.getElementById("sidebar").style.width = "250px";
-        }
-      
-        function closeSidebar() {
-          document.getElementById("sidebar").style.width = "0";
-        }
         
         });
     </script>
