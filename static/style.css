@@ -1,16 +1,20 @@
 /* style.css */
 
-body {
-    font-family: Arial, sans-serif;
+html, body {
+    height: 100%;
     margin: 0;
     padding: 0;
-    background-color: #dcc2c2;
+}
+
+body {
+    font-family: Arial, sans-serif;
     color: #1A3A6C;
+    display: flex;
+    flex-direction: column;
+    background-color: white; /* fixed from #dcc2c2 */
 }
-.logo {
-    font-size: 3rem;
-    font-weight: bold;
-}
+
+/* Navbar */
 .navbar {
     background-color: #00A859;
     color: white;
@@ -19,10 +23,10 @@ body {
     align-items: center;
 }
 
-.navbar a{
+.navbar a {
     text-decoration: none;
     color: #ffffff;
-    font-family:Arial, Helvetica, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 .logo {
@@ -53,6 +57,7 @@ body {
     text-decoration: underline;
 }
 
+/* Sections */
 .section {
     padding: 4rem 2rem;
     text-align: center;
@@ -62,19 +67,21 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Footer */
 footer {
     background-color: #1A3A6C;
     color: white;
     text-align: center;
-    padding-bottom: 1rem; 
+    padding-bottom: 1rem;
     width: 100%;
     border: none;
     margin: 0;
+    margin-top: auto;
 }
 
 .nav1 {
     background: linear-gradient(to bottom, #00A859, #ffffff);
-    height: 100px; 
+    height: 100px;
     margin: 0;
     padding: 0;
 }
@@ -86,7 +93,8 @@ footer {
     margin: 0;
     padding: 0;
 }
-/* This is For Sidebar*/
+
+/* Sidebar */
 .sidebar {
     height: 100%;
     width: 0;
@@ -136,11 +144,12 @@ footer {
     padding: 0;
 }
 
+/* Content */
 .content {
     display: flex;
-    justify-content: center; 
-    align-items: center;     
-    height: calc(56vh - 70px); 
+    justify-content: center;
+    align-items: center;
+    height: calc(56vh - 70px);
     background-color: #ffffff;
     text-align: center;
     padding: 20px;
@@ -150,4 +159,3 @@ footer {
     font-size: 3rem;
     color: #1A3A6C;
 }
-

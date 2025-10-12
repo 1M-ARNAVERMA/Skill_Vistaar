@@ -1,12 +1,29 @@
-body, html {
-    font-family: Arial, sans-serif;
+/* style.css */
+html, body {
+    height: 100%;
     margin: 0;
     padding: 0;
     width: 100%;
-    background-color: #f4f4f4;
+    font-family: Arial, sans-serif;
     color: #1A3A6C;
-    /*overflow-x: auto;*/
+    background-color: white; 
     overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar {
+    background: linear-gradient(#00A859, #ffffff); 
+    color: white;
+    padding: 3rem 2rem;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.menu-icon {
+    font-size: 2rem;
+    cursor: pointer;
 }
 
 .logo {
@@ -16,31 +33,12 @@ body, html {
     left: 90px;
 }
 
-.navbar {
-    background:linear-gradient(#00A859,#f5f4f5);
-    color: white;
-    padding: 3rem 2rem;
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
-}
-
-footer {
-    background:linear-gradient(to top,#1A3A6C,#f5f4f5);
-    color: white;
-    text-align: center;
-    padding: 3rem 2rem; 
-    width: 100%;
-    border: none;
-    margin: 0;
-}
-
 .content {
     display: flex;
-    justify-content: center; 
-    align-items: center;     
-    height: calc(57.6vh - 1px); /* Full viewport height minus navbar */
-    background-color: #f4f4f4;
+    justify-content: center;
+    align-items: center;
+    height: calc(57.6vh - 1px);
+    background-color: white; 
     text-align: center;
     padding: 10px;
     box-sizing: border-box;
@@ -58,9 +56,15 @@ footer {
     max-width: 80%;
 }
 
-.menu-icon {
-    font-size: 2rem;
-    cursor: pointer;
+footer {
+    background: linear-gradient(to top, #1A3A6C, #ffffff);
+    color: white;
+    text-align: center;
+    padding: 3rem 2rem;
+    width: 100%;
+    border: none;
+    margin: 0;
+    margin-top: auto;
 }
 
 .sidebar {
@@ -99,6 +103,7 @@ footer {
     background-color: #00A859;
 }
 
+/* Close Button */
 .close-btn {
     position: absolute;
     top: 10px;
