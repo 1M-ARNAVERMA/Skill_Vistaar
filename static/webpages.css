@@ -12,32 +12,32 @@ html, body {
     flex-direction: column;
 }
 
-/* ======= NORMAL SCROLLING HEADER ======= */
+/* ======= HEADER / NAVBAR ======= */
 .navbar {
     background: linear-gradient(#00A859, #ffffff); 
     color: white;
     padding: 3rem 2rem;
     display: flex;
     align-items: center;
+    gap: 20px;             /* ✅ Space between icon and logo */
     box-sizing: border-box;
-    position: relative; /* ✅ Header scrolls normally */
+    position: relative;    /* ✅ Moves normally with page scroll */
 }
 
-/* ======= FIXED SKILL VISTAAR LOGO ======= */
-.logo {
-    font-size: 3rem;
-    font-weight: bold;
-    position: fixed;   /* ✅ Logo stays fixed on screen */
-    top: 25px;         /* ✅ Adjust vertical position */
-    left: 90px;        /* ✅ Align horizontally */
-    z-index: 1000;     /* ✅ Stays above everything else */
-}
-
-/* ======= MENU ICON ======= */
+/* ======= MENU ICON (LEFT OF LOGO) ======= */
 .menu-icon {
     font-size: 2rem;
     cursor: pointer;
-    margin-left: auto;
+    color: #1A3A6C;        /* ✅ Match logo color */
+}
+
+/* ======= LOGO (INSIDE HEADER, NEXT TO ICON) ======= */
+.logo {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #1A3A6C;
+    margin: 0;
+    position: relative;    /* ✅ Keeps it inside navbar */
 }
 
 /* ======= CONTENT SECTION ======= */
