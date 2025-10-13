@@ -12,35 +12,31 @@ html, body {
     flex-direction: column;
 }
 
-/* ======= HEADER / NAVBAR ======= */
 .navbar {
     background: linear-gradient(#00A859, #ffffff); 
     color: white;
     padding: 3rem 2rem;
     display: flex;
     align-items: center;
-    gap: 20px;             /* ✅ Space between icon and logo */
+    gap: 20px;             
     box-sizing: border-box;
-    position: relative;    /* ✅ Moves normally with page scroll */
+    position: relative;    
 }
 
-/* ======= MENU ICON (LEFT OF LOGO) ======= */
 .menu-icon {
     font-size: 2rem;
     cursor: pointer;
-    color: #1A3A6C;        /* ✅ Match logo color */
+    color: #1A3A6C;        
 }
 
-/* ======= LOGO (INSIDE HEADER, NEXT TO ICON) ======= */
 .logo {
     font-size: 3rem;
     font-weight: bold;
     color: #1A3A6C;
     margin: 0;
-    position: relative;    /* ✅ Keeps it inside navbar */
+    position: relative;    
 }
 
-/* ======= CONTENT SECTION ======= */
 .content {
     display: flex;
     justify-content: center;
@@ -64,7 +60,6 @@ html, body {
     max-width: 80%;
 }
 
-/* ======= FOOTER ======= */
 footer {
     background: linear-gradient(to top, #1A3A6C, #ffffff);
     color: white;
@@ -76,7 +71,6 @@ footer {
     margin-top: auto;
 }
 
-/* ======= SIDEBAR ======= */
 .sidebar {
     height: 100%;
     width: 0;
@@ -113,7 +107,6 @@ footer {
     background-color: #00A859;
 }
 
-/* ======= CLOSE BUTTON ======= */
 .close-btn {
     position: absolute;
     top: 10px;
