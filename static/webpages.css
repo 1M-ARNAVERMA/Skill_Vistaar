@@ -10,8 +10,10 @@ html, body {
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
+    padding-top: 120px; /* ✅ Prevent content from hiding behind fixed navbar */
 }
 
+/* ======= FIXED NAVBAR ======= */
 .navbar {
     background: linear-gradient(#00A859, #ffffff); 
     color: white;
@@ -19,20 +21,28 @@ html, body {
     display: flex;
     align-items: center;
     box-sizing: border-box;
+    position: fixed;     /* ✅ Keeps navbar fixed at top */
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;       /* ✅ Ensures it stays above other elements */
 }
 
-.menu-icon {
-    font-size: 2rem;
-    cursor: pointer;
-}
-
+/* ======= LOGO ======= */
 .logo {
     font-size: 3rem;
     font-weight: bold;
-    position: absolute;
-    left: 90px;
+    margin-left: 90px;   /* ✅ Removed absolute positioning */
 }
 
+/* ======= MENU ICON ======= */
+.menu-icon {
+    font-size: 2rem;
+    cursor: pointer;
+    margin-left: auto;   /* ✅ Keeps it on the right side */
+}
+
+/* ======= CONTENT SECTION ======= */
 .content {
     display: flex;
     justify-content: center;
@@ -56,6 +66,7 @@ html, body {
     max-width: 80%;
 }
 
+/* ======= FOOTER ======= */
 footer {
     background: linear-gradient(to top, #1A3A6C, #ffffff);
     color: white;
@@ -67,6 +78,7 @@ footer {
     margin-top: auto;
 }
 
+/* ======= SIDEBAR ======= */
 .sidebar {
     height: 100%;
     width: 0;
@@ -103,7 +115,6 @@ footer {
     background-color: #00A859;
 }
 
-/* Close Button */
 .close-btn {
     position: absolute;
     top: 10px;
