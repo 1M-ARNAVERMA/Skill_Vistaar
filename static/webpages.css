@@ -10,10 +10,9 @@ html, body {
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    padding-top: 120px; /* ✅ Prevent content from hiding behind fixed navbar */
 }
 
-/* ======= FIXED NAVBAR ======= */
+/* ======= NORMAL SCROLLING HEADER ======= */
 .navbar {
     background: linear-gradient(#00A859, #ffffff); 
     color: white;
@@ -21,25 +20,24 @@ html, body {
     display: flex;
     align-items: center;
     box-sizing: border-box;
-    position: fixed;     /* ✅ Keeps navbar fixed at top */
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;       /* ✅ Ensures it stays above other elements */
+    position: relative; /* ✅ Header scrolls normally */
 }
 
-/* ======= LOGO ======= */
+/* ======= FIXED SKILL VISTAAR LOGO ======= */
 .logo {
     font-size: 3rem;
     font-weight: bold;
-    margin-left: 90px;   /* ✅ Removed absolute positioning */
+    position: fixed;   /* ✅ Logo stays fixed on screen */
+    top: 25px;         /* ✅ Adjust vertical position */
+    left: 90px;        /* ✅ Align horizontally */
+    z-index: 1000;     /* ✅ Stays above everything else */
 }
 
 /* ======= MENU ICON ======= */
 .menu-icon {
     font-size: 2rem;
     cursor: pointer;
-    margin-left: auto;   /* ✅ Keeps it on the right side */
+    margin-left: auto;
 }
 
 /* ======= CONTENT SECTION ======= */
@@ -115,6 +113,7 @@ footer {
     background-color: #00A859;
 }
 
+/* ======= CLOSE BUTTON ======= */
 .close-btn {
     position: absolute;
     top: 10px;
