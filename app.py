@@ -162,5 +162,67 @@ def recommend_career():
 
     return jsonify(response)
 
+
+@app.route('/analyze_skill_gap', methods=['POST'])
+def analyze_skill_gap():
+    data = request.get_json() or {}
+    company = (data.get('company') or '').strip()
+    position = (data.get('position') or '').strip().lower()
+    skills_raw = (data.get('skills') or '').strip().lower()
+
+    current_skills = [s.strip() for s in re.split(r',|\n|;', skills_raw) if s.strip()]
+
+    job_requirements = {
+        "software engineer": ["python", "data structures", "algorithms", "git", "unit testing", "linux", "cloud computing"],
+        "backend engineer": ["python", "apis", "databases", "sql", "docker", "git"],
+        "frontend developer": ["html", "css", "javascript", "react", "responsive design", "accessibility"],
+        "data scientist": ["python", "machine learning", "statistics", "sql", "pandas", "data visualization"],
+        "data analyst": ["sql", "excel", "data visualization", "python", "statistics"],
+        "ux designer": ["user research", "wireframing", "figma", "prototyping", "usability testing"],
+        "product manager": ["roadmapping", "stakeholder communication", "metrics", "prioritization"],
+        "devops": ["linux", "docker", "kubernetes", "ci/cd", "cloud"],
+    }
+
+    matched_key = None
+    for key in job_requirements.keys():
+        if key in position:
+            matched_key = key
+            break
+    if matched_key is None:
+        for key in job_requirements.keys():
+            first_word = key.split()[0]
+            if first_word in position:
+                matched_key = key
+                break
+    if matched_key is None:
+        required_skills = ["communication", "problem-solving", "teamwork"]
+    else:
+        required_skills = job_requirements[matched_key]
+
+    normalized_current = [s.lower() for s in current_skills]
+    missing = [r for r in required_skills if not any(r in s or s in r for s in normalized_current)]
+
+    recommendations = []
+    if missing:
+        recommendations.append("Study and practice the missing skills listed above.")
+        recommendations.append("Build small projects that demonstrate those skills.")
+        recommendations.append("Add those keywords to your resume and LinkedIn profile.")
+        recommendations.append("Take hands-on courses or labs for the missing topics.")
+    else:
+        recommendations.append("Your current skills cover the core requirements. Strengthen via projects and interview practice.")
+
+    notes = ""
+    if company:
+        notes = f"Hiring requirements at {company} may include extra topics (system design, domain tools). Check company job descriptions to refine this list."
+
+    response = {
+        "title": f"Skill gap analysis for {position.title() if position else 'role'}",
+        "required": required_skills,
+        "missing": missing,
+        "recommendations": recommendations,
+        "notes": notes
+    }
+    return jsonify(response)
+
 if __name__ == '__main__':
     app.run(debug=True)
