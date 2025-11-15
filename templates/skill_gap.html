@@ -1,82 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Skill Gap Analysis</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Skill Gap Analysis - Skill Vistaar</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
 </head>
-
 <body>
-    <header>
-        <nav class="navbar">
-            <span class="menu-icon" onclick="openSidebar()">&#9776;</span>
-            <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
-        </nav>
-    </header>
-    
-    <div id="sidebar" class="sidebar">
-        <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">⮿</a>
-        <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
-        <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
-        <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
-        <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
-        <a href="{{ url_for('networking') }}">Networking Opportunities</a>
-    </div>
+  <header class="navbar">
+    <button class="menu-icon" onclick="openSidebar()">☰</button>
+    <a class="logo" href="{{ url_for('home') }}">SKILL VISTAAR</a>
+  </header>
 
-    <div class="content">
-        <form id="skillForm">
-            <label>Target Company:</label><br>
-            <input type="text" name="company" required><br><br>
-    
-            <label>Target Position:</label><br>
-            <input type="text" name="position" required><br><br>
-    
-            <label>Your Current Skills (comma-separated):</label><br>
-            <textarea name="skills" required></textarea><br><br>
-    
-            <button type="submit">Analyze</button>
-        </form>
-    
-        <div id="result"></div>
-    </div>
-    
-    <script>
-        const form = document.getElementById("skillForm");
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-    
-            const company = form.company.value;
-            const position = form.position.value;
-            const skills = form.skills.value;
-    
-            const response = await fetch("/analyze_skill_gap", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ company, position, skills })
-            });
-        
-        function openSidebar() {
-          document.getElementById("sidebar").style.width = "250px";
+  <nav id="sidebar" class="sidebar">
+    <button class="close-btn" onclick="closeSidebar()">✕</button>
+    <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
+    <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
+    <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
+    <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
+    <a href="{{ url_for('networking') }}">Networking Opportunities</a>
+  </nav>
+
+  <main class="content form-page">
+    <h1>Skill Gap Analysis</h1>
+    <form id="skillForm" class="form-card">
+      <label>Target Company (optional)</label>
+      <input name="company" type="text" placeholder="e.g. Google">
+
+      <label>Position / Role</label>
+      <input name="position" type="text" required placeholder="e.g. Software Engineer">
+
+      <label>Your Current Skills (comma separated)</label>
+      <textarea name="skills" rows="3" placeholder="python, git, sql"></textarea>
+
+      <button type="submit" class="btn">Analyze</button>
+    </form>
+
+    <div id="skill-result" class="result-card" style="display:none"></div>
+  </main>
+
+  <footer class="footer-gradient"><p>© 2025 Skill Vistaar</p></footer>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('skillForm');
+      const resultDiv = document.getElementById('skill-result');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<em>Processing…</em>';
+
+        const formData = new FormData(form);
+        const payload = {
+          company: formData.get('company') || "",
+          position: formData.get('position') || "",
+          skills: formData.get('skills') || ""
+        };
+
+        try {
+          const res = await fetch('/analyze_skill_gap', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data.error) {
+            resultDiv.innerHTML = `<p class="error">${data.error}</p>`;
+            return;
+          }
+          resultDiv.innerHTML = `
+            <h3>Missing Skills</h3>
+            <ul>${(data.missing_skills || []).map(s => `<li>${s}</li>`).join('')}</ul>
+            <h4>Recommended Learning Path</h4>
+            <ol>${(data.recommended_learning_path || []).map(p => `<li>${p}</li>`).join('')}</ol>
+          `;
+        } catch (err) {
+          resultDiv.innerHTML = `<p class="error">Request failed: ${err}</p>`;
         }
-      
-        function closeSidebar() {
-          document.getElementById("sidebar").style.width = "0";
-        }
-            const data = await response.json();
-    
-            document.getElementById("result").innerHTML = `
-                <h3>Suggested Skills to Improve for <em>${position}</em> at <strong>${company}</strong>:</h3>
-                <ul>${data.skills.map(skill => `<li>${skill}</li>`).join('')}</ul>
-            `;
-        });
-    </script>
-    
-    
-    <footer>
-        <div class="footer-gradient"></div>
-        <p>&copy; 2025 Skill Vistaar. All rights reserved.</p>
-    </footer>
+      });
+    });
+  </script>
 </body>
 </html>
-    

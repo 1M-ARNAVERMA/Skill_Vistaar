@@ -1,192 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Personalized Career Guidance</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
-    <style>
-        .quiz-container {
-            background: white;
-            width: 1200px; 
-            padding: 30px;
-            border-radius: 12px;
-            max-width: 90%;
-            margin: 40px auto;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #1A3A6C;
-        }
-
-        .question {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        label {
-            display: block;
-            margin: 8px 0;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #00A859;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .clear-button {
-            padding: 5px 8px;
-            font-size: 10px;
-            background-color: #ddd;
-            color: #333;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            position: absolute;
-            right: 0;
-            top: 0;
-        }
-
-        #result {
-            margin-top: 30px;
-            font-size: 20px;
-            font-weight: bold;
-            color: #007bff;
-            text-align: center;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Personalized Career Guidance</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
 </head>
+
 <body>
-    <header>
-        <nav class="navbar">
-            <span class="menu-icon" onclick="openSidebar()">&#9776;</span>
-            <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
-        </nav>
-    </header>
-    
-    <div id="sidebar" class="sidebar">
-        <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">⮿</a>
-        <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
-        <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
-        <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
-        <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
-        <a href="{{ url_for('networking') }}">Networking Opportunities</a>
-    </div>
+  <header class="navbar">
+    <button class="menu-icon" onclick="openSidebar()">☰</button>
+    <a class="logo" href="{{ url_for('home') }}">SKILL VISTAAR</a>
+  </header>
 
-    <div class="quiz-container">
-        <h2>Career Interest Quiz</h2>
-        <form id="quizForm">
+  <nav id="sidebar" class="sidebar">
+    <button class="close-btn" onclick="closeSidebar()">✕</button>
+    <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
+    <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
+    <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
+    <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
+    <a href="{{ url_for('networking') }}">Networking Opportunities</a>
+  </nav>
 
-            <div class="question">
-                <p>1. What do you enjoy the most?</p>
-                <label><input type="radio" name="q1" value="creative"> Designing or Drawing</label>
-                <label><input type="radio" name="q1" value="technical"> Solving tech problems</label>
-                <label><input type="radio" name="q1" value="analytical"> Analyzing data</label>
-                <label><input type="radio" name="q1" value="social"> Helping others</label>
-                <button type="button" class="clear-button" onclick="clearRadio('q1')">Clear</button>
-            </div>
+  <main class="content form-page">
+    <h1>Career Guidance Quiz</h1>
+    <form id="quizForm" class="form-card">
+      <label>1) Which subject do you enjoy most?</label>
+      <select name="q1">
+        <option value="programming">Programming</option>
+        <option value="design">Design & UX</option>
+        <option value="math">Math & Analytics</option>
+        <option value="writing">Writing & Communication</option>
+      </select>
 
-            <div class="question">
-                <p>2. Which task sounds most exciting?</p>
-                <label><input type="radio" name="q2" value="technical"> Building an app</label>
-                <label><input type="radio" name="q2" value="social"> Teaching a class</label>
-                <label><input type="radio" name="q2" value="analytical"> Studying stock trends</label>
-                <label><input type="radio" name="q2" value="creative"> Writing a story</label>
-                <button type="button" class="clear-button" onclick="clearRadio('q2')">Clear</button>
-            </div>
+      <label>2) Work style preference</label>
+      <select name="q2">
+        <option value="team">Team projects</option>
+        <option value="solo">Independent work</option>
+        <option value="client">Client-facing</option>
+      </select>
 
-            <div class="question">
-                <p>3. Which subject do you prefer?</p>
-                <label><input type="radio" name="q3" value="creative"> Art / Literature</label>
-                <label><input type="radio" name="q3" value="technical"> Computer Science</label>
-                <label><input type="radio" name="q3" value="analytical"> Mathematics</label>
-                <label><input type="radio" name="q3" value="social"> Psychology</label>
-                <button type="button" class="clear-button" onclick="clearRadio('q3')">Clear</button>
-            </div>
+      <label>3) Do you prefer hands-on technical tasks?</label>
+      <select name="q3">
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
 
-            <div class="question">
-                <p>4. How do you solve problems?</p>
-                <label><input type="radio" name="q4" value="creative"> Think outside the box</label>
-                <label><input type="radio" name="q4" value="technical"> Use technical knowledge</label>
-                <label><input type="radio" name="q4" value="analytical"> Break into data patterns</label>
-                <label><input type="radio" name="q4" value="social"> Ask people for ideas</label>
-                <button type="button" class="clear-button" onclick="clearRadio('q4')">Clear</button>
-            </div>
+      <button type="submit" class="btn">Get Recommendation</button>
+    </form>
 
-            <div class="question">
-                <p>5. What's your dream work environment?</p>
-                <label><input type="radio" name="q5" value="creative"> Studio or creative lab</label>
-                <label><input type="radio" name="q5" value="technical"> Tech company or lab</label>
-                <label><input type="radio" name="q5" value="analytical"> Research or analytics team</label>
-                <label><input type="radio" name="q5" value="social"> Social or community center</label>
-                <button type="button" class="clear-button" onclick="clearRadio('q5')">Clear</button>
-            </div>
+    <div id="quiz-result" class="result-card" style="display:none"></div>
+  </main>
 
-            <button type="button" onclick="calculateResult()">Submit</button>
-        </form>
+  <footer class="footer-gradient"><p>© 2025 Skill Vistaar</p></footer>
 
-        <div id="result"></div>
-    </div>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('quizForm');
+      const resultDiv = document.getElementById('quiz-result');
 
-    <footer>
-        <div class="footer-gradient"></div>
-        <p>&copy; 2025 Skill Vistaar. All rights reserved.</p>
-    </footer>
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<em>Processing…</em>';
 
-    <script>
-        function clearRadio(name) {
-            const radios = document.getElementsByName(name);
-            for (let i = 0; i < radios.length; i++) {
-                radios[i].checked = false;
-            }
+        const formData = new FormData(form);
+        const answers = {};
+        for (const [k, v] of formData.entries()) answers[k] = v;
+
+        try {
+          const res = await fetch('/career_quiz', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({answers})
+          });
+          const data = await res.json();
+          if (data.error) {
+            resultDiv.innerHTML = `<p class="error">${data.error}</p>`;
+            return;
+          }
+          resultDiv.innerHTML = `
+            <h3>Recommended Career: ${data.recommended_career}</h3>
+            <p><strong>Why:</strong> ${data.reason}</p>
+            <h4>Next Steps</h4>
+            <ol>${(data.next_steps || []).map(s => `<li>${s}</li>`).join('')}</ol>
+          `;
+        } catch (err) {
+          resultDiv.innerHTML = `<p class="error">Request failed: ${err}</p>`;
         }
-        
-        function openSidebar() {
-          document.getElementById("sidebar").style.width = "250px";
-        }
-      
-        function closeSidebar() {
-          document.getElementById("sidebar").style.width = "0";
-        }
-      
-        function calculateResult() {
-            const form = document.forms['quizForm'];
-            const values = ['q1', 'q2', 'q3', 'q4', 'q5'].map(q => {
-                const radios = form[q];
-                if (!radios) return undefined;
-                for (let i = 0; i < radios.length; i++) {
-                    if (radios[i].checked) return radios[i].value;
-                }
-                return undefined;
-            });
-
-            if (values.includes(undefined)) {
-                alert("Please answer all questions!");
-                return;
-            }
-
-            const scores = { creative: 0, technical: 0, analytical: 0, social: 0 };
-            values.forEach(value => scores[value]++);
-
-            const topTrait = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
-
-            const careers = {
-                creative: "UI/UX Designer, Content Creator, Graphic Artist",
-                technical: "Software Developer, System Engineer, App Developer",
-                analytical: "Data Analyst, Financial Analyst, Statistician",
-                social: "Teacher, Psychologist, HR Professional"
-            };
-
-            document.getElementById("result").innerHTML =
-                `✅ Based on your answers, we recommend: <br><br><strong>${careers[topTrait]}</strong>`;
-        }
-    </script>
+      });
+    });
+  </script>
 </body>
 </html>

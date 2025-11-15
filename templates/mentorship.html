@@ -1,79 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Mentorship Program</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='mentorship.css') }}">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mentorship - Skill Vistaar</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <span class="menu-icon" onclick="openSidebar()">&#9776;</span>
-            <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
-        </nav>
-    </header>
-    
-    <div id="sidebar" class="sidebar">
-        <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">⮿</a>
-        <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
-        <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
-        <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
-        <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
-        <a href="{{ url_for('networking') }}">Networking Opportunities</a>
+  <header class="navbar">
+    <button class="menu-icon" onclick="openSidebar()">☰</button>
+    <a class="logo" href="{{ url_for('home') }}">SKILL VISTAAR</a>
+  </header>
+
+  <nav id="sidebar" class="sidebar">
+    <button class="close-btn" onclick="closeSidebar()">✕</button>
+    <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
+    <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
+    <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
+    <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
+    <a href="{{ url_for('networking') }}">Networking Opportunities</a>
+  </nav>
+
+  <main class="content">
+    <h1>Mentorship Program</h1>
+    <div class="card-grid">
+      <div class="mentor-card">
+        <img src="{{ url_for('static', filename='Mentor Photos/Elon_musk.png') }}" alt="Elon">
+        <h3>Elon Musk</h3>
+        <p>Entrepreneur — SpaceX, Tesla</p>
+        <a class="btn" href="https://en.wikipedia.org/wiki/Elon_Musk" target="_blank">View Profile</a>
+      </div>
+      <div class="mentor-card">
+        <img src="{{ url_for('static', filename='Mentor Photos/Bill_Gates.webp') }}" alt="Bill">
+        <h3>Bill Gates</h3>
+        <p>Philanthropy & Tech</p>
+        <a class="btn" href="https://en.wikipedia.org/wiki/Bill_Gates" target="_blank">View Profile</a>
+      </div>
+      <div class="mentor-card">
+        <img src="{{ url_for('static', filename='Mentor Photos/Jeff_bezos.jpeg') }}" alt="Jeff">
+        <h3>Jeff Bezos</h3>
+        <p>eCommerce & Cloud</p>
+        <a class="btn" href="https://en.wikipedia.org/wiki/Jeff_Bezos" target="_blank">View Profile</a>
+      </div>
     </div>
+  </main>
 
-    <h1>Meet Our Mentors</h1>
-    <div class="container">
-        <div class="mentor-card">
-            <img src="{{ url_for('static', filename='Mentor Photos/Rajesh_Mehra.jpg') }}" alt="Mentor">
-            <h3>Rajesh Mehra</h3>
-            <p>Founder of GreenVolt Energy, a startup revolutionizing renewable battery storage across Asia.</p>
-            <a class="btn" target="_blank" rel="">View Wikipedia Profile</a>
-        </div>
-
-        <div class="mentor-card">
-            <img src="{{ url_for('static', filename='Mentor Photos/Daniel_Carter.jpg') }}" alt="Mentor">
-            <h3>Daniel Carter</h3>
-            <p>CEO of NeuraTech Systems, an AI-driven company building smart automation tools for global logistics.</p>
-            <a class="btn" target="_blank" rel="">View Wikipedia Profile</a>
-        </div>
-
-        <div class="mentor-card">
-            <img src="{{ url_for('static', filename='Mentor Photos/Liam Rodriguez.jpeg') }}" alt="Mentor">
-            <h3>Liam Rodriguez</h3>
-            <p>Real estate developer and chairman of Skyline Infrastructures, known for sustainable smart-city projects.</p>
-            <a class="btn" target="_blank" rel="">View Wikipedia Profile</a>
-        </div>
-
-        <div class="mentor-card">
-            <img src="{{ url_for('static', filename='Mentor Photos/Ethan_Walker.webp') }}" alt="Mentor">
-            <h3>Ethan Walker</h3>
-            <p>CEO BluePeak Analytics, data intelligence firm helping Fortune 500 companies make smarter financial decisions.</p>
-            <a class="btn" target="_blank" rel="">View Wikipedia Profile</a>
-        </div>
-
-        <div class="mentor-card">
-            <img src="{{ url_for('static', filename='Mentor Photos/Jason Brooks.jpeg') }}" alt="Mentor">
-            <h3>Jason Brooks</h3>
-            <p>Managing partner at Summit Ridge Capital, a private equity firm investing in sustainable infrastructure.</p>
-            <a class="btn" target="_blank" rel="">View Wikipedia Profile</a>
-        </div>
-    </div>
-
-    <script>
-        function openSidebar() {
-          document.getElementById("sidebar").style.width = "250px";
-        }
-      
-        function closeSidebar() {
-          document.getElementById("sidebar").style.width = "0";
-        }
-      </script>
-
-    <footer>
-        <div class="footer-gradient"></div>
-        <p>&copy; 2025 Skill Vistaar. All rights reserved.</p>
-    </footer>
+  <footer class="footer-gradient"><p>© 2025 Skill Vistaar</p></footer>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
