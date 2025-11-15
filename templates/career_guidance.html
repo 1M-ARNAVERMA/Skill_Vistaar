@@ -1,96 +1,293 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Personalized Career Guidance</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
-</head>
-
-<body>
-  <header class="navbar">
-    <button class="menu-icon" onclick="openSidebar()">☰</button>
-    <a class="logo" href="{{ url_for('home') }}">SKILL VISTAAR</a>
-  </header>
-
-  <nav id="sidebar" class="sidebar">
-    <button class="close-btn" onclick="closeSidebar()">✕</button>
-    <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
-    <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
-    <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
-    <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
-    <a href="{{ url_for('networking') }}">Networking Opportunities</a>
-  </nav>
-
-  <main class="content form-page">
-    <h1>Career Guidance Quiz</h1>
-    <form id="quizForm" class="form-card">
-      <label>1) Which subject do you enjoy most?</label>
-      <select name="q1">
-        <option value="programming">Programming</option>
-        <option value="design">Design & UX</option>
-        <option value="math">Math & Analytics</option>
-        <option value="writing">Writing & Communication</option>
-      </select>
-
-      <label>2) Work style preference</label>
-      <select name="q2">
-        <option value="team">Team projects</option>
-        <option value="solo">Independent work</option>
-        <option value="client">Client-facing</option>
-      </select>
-
-      <label>3) Do you prefer hands-on technical tasks?</label>
-      <select name="q3">
-        <option value="yes">Yes</option>
-        <option value="no">No</option>
-      </select>
-
-      <button type="submit" class="btn">Get Recommendation</button>
-    </form>
-
-    <div id="quiz-result" class="result-card" style="display:none"></div>
-  </main>
-
-  <footer class="footer-gradient"><p>© 2025 Skill Vistaar</p></footer>
-
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const form = document.getElementById('quizForm');
-      const resultDiv = document.getElementById('quiz-result');
-
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        resultDiv.style.display = 'block';
-        resultDiv.innerHTML = '<em>Processing…</em>';
-
-        const formData = new FormData(form);
-        const answers = {};
-        for (const [k, v] of formData.entries()) answers[k] = v;
-
-        try {
-          const res = await fetch('/career_quiz', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({answers})
-          });
-          const data = await res.json();
-          if (data.error) {
-            resultDiv.innerHTML = `<p class="error">${data.error}</p>`;
-            return;
-          }
-          resultDiv.innerHTML = `
-            <h3>Recommended Career: ${data.recommended_career}</h3>
-            <p><strong>Why:</strong> ${data.reason}</p>
-            <h4>Next Steps</h4>
-            <ol>${(data.next_steps || []).map(s => `<li>${s}</li>`).join('')}</ol>
-          `;
-        } catch (err) {
-          resultDiv.innerHTML = `<p class="error">Request failed: ${err}</p>`;
+    <meta charset="UTF-8" />
+    <title>Career Guidance Quiz</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
+    <style>
+        .quiz-wrapper {
+            max-width: 1100px;
+            margin: 120px auto 60px; /* leave room for fixed navbar */
+            padding: 28px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.07);
         }
-      });
-    });
-  </script>
+        .quiz-title {
+            font-size: 36px;
+            color: #16446f;
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        .question {
+            margin: 14px 0;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .question label {
+            min-width: 300px;
+            color: #0f3b5b;
+            font-weight: 600;
+        }
+        .question select,
+        .question input[type="text"],
+        .question textarea {
+            min-width: 320px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            background: #fff;
+        }
+        .question .radio-group {
+            display:flex;
+            gap:14px;
+            align-items:center;
+        }
+        .btn-row {
+            margin-top: 18px;
+            display:flex;
+            gap: 12px;
+            align-items:center;
+        }
+        .btn {
+            padding: 12px 20px;
+            background: #00A859;
+            color: white;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        #result-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f4fbf6;
+            border-left: 6px solid #00A859;
+            border-radius: 8px;
+            display: none;
+        }
+        #result-container h3 {
+            margin: 0 0 10px;
+            color: #16446f;
+        }
+        /* responsive */
+        @media (max-width: 760px){
+            .question label { min-width: 100%; }
+            .question select, .question input[type="text"], .question textarea { min-width: 100%; }
+            .quiz-wrapper { margin: 100px 12px; padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <span class="menu-icon" onclick="openSidebar()">&#9776;</span>
+            <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
+        </nav>
+    </header>
+
+    <div id="sidebar" class="sidebar" aria-hidden="true">
+        <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">⮿</a>
+        <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
+        <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
+        <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
+        <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
+        <a href="{{ url_for('networking') }}">Networking Opportunities</a>
+        <a href="{{ url_for('home') }}">Home</a>
+    </div>
+
+    <main class="quiz-wrapper" role="main" aria-labelledby="quiz-title">
+        <div class="quiz-title" id="quiz-title">Career Guidance Quiz</div>
+
+        <form id="careerQuiz" autocomplete="off">
+            <div class="question">
+                <label for="q1">1) Which subject do you enjoy most?</label>
+                <select id="q1" name="q1" required>
+                    <option value="programming">Programming</option>
+                    <option value="design">Design & UX</option>
+                    <option value="math">Math & Analytics</option>
+                    <option value="writing">Writing & Communication</option>
+                    <option value="business">Business / Management</option>
+                </select>
+            </div>
+
+            <div class="question">
+                <label for="q2">2) What work style do you prefer?</label>
+                <select id="q2" name="q2" required>
+                    <option value="team">Team projects</option>
+                    <option value="solo">Independent</option>
+                    <option value="client">Client-facing</option>
+                    <option value="research">Research-oriented</option>
+                </select>
+            </div>
+
+            <div class="question">
+                <label>3) Do you prefer hands-on technical tasks?</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="q3" value="yes" checked> Yes</label>
+                    <label><input type="radio" name="q3" value="no"> No</label>
+                </div>
+            </div>
+
+            <div class="question">
+                <label for="q4">4) How much creativity matters in your daily work?</label>
+                <select id="q4" name="q4" required>
+                    <option value="high">Very high</option>
+                    <option value="medium">Moderate</option>
+                    <option value="low">Not much</option>
+                </select>
+            </div>
+
+            <div class="question">
+                <label for="q5">5) Do you enjoy analysing data?</label>
+                <select id="q5" name="q5" required>
+                    <option value="yes">Yes</option>
+                    <option value="sometimes">Sometimes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+
+            <div class="question">
+                <label for="q6">6) Are you comfortable presenting your ideas to others?</label>
+                <select id="q6" name="q6" required>
+                    <option value="yes">Yes</option>
+                    <option value="some">Sometimes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+
+            <div class="question">
+                <label for="q7">7) Which environment appeals to you?</label>
+                <select id="q7" name="q7" required>
+                    <option value="startup">Startup / fast-paced</option>
+                    <option value="corporate">Corporate / structured</option>
+                    <option value="academic">Academic / research</option>
+                    <option value="freelance">Freelance / agency</option>
+                </select>
+            </div>
+
+            <div class="question">
+                <label for="q8">8) What kind of impact do you want to create?</label>
+                <select id="q8" name="q8" required>
+                    <option value="tech">Build useful products (tech)</option>
+                    <option value="people">Help people directly</option>
+                    <option value="insights">Generate insights from data</option>
+                    <option value="brand">Create visual/brand impact</option>
+                </select>
+            </div>
+
+            <div class="question">
+                <label for="q9">9) Preferred time spent on coding vs people-work?</label>
+                <select id="q9" name="q9" required>
+                    <option value="mostly_code">Mostly coding</option>
+                    <option value="balanced">Balanced</option>
+                    <option value="mostly_people">Mostly people-work</option>
+                </select>
+            </div>
+
+            <div class="question">
+                <label for="q10">10) Any specific role/keyword you're curious about? (optional)</label>
+                <input type="text" id="q10" name="q10" placeholder="e.g. Data Scientist, UX Designer, Product Manager">
+            </div>
+
+            <div class="btn-row">
+                <button type="submit" id="submitBtn" class="btn">Get Recommendation</button>
+                <button type="button" id="resetBtn" class="btn" style="background:#e0e0e0;color:#16446f">Reset</button>
+            </div>
+        </form>
+
+        <div id="result-container" aria-live="polite">
+            <h3 id="result-title"></h3>
+            <div id="result-body"></div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-gradient"></div>
+        <p style="text-align:center; padding:18px 0; margin:0">© 2025 Skill Vistaar</p>
+    </footer>
+
+    <script>
+        function openSidebar() {
+            document.getElementById("sidebar").style.width = "260px";
+            document.body.style.overflow = "hidden";
+            document.getElementById("sidebar").setAttribute("aria-hidden","false");
+        }
+        function closeSidebar() {
+            document.getElementById("sidebar").style.width = "0";
+            document.body.style.overflow = "";
+            document.getElementById("sidebar").setAttribute("aria-hidden","true");
+        }
+
+        const form = document.getElementById('careerQuiz');
+        const resultContainer = document.getElementById('result-container');
+        const resultTitle = document.getElementById('result-title');
+        const resultBody = document.getElementById('result-body');
+        const submitBtn = document.getElementById('submitBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        resetBtn.addEventListener('click', () => {
+            form.reset();
+            resultContainer.style.display = 'none';
+            resultTitle.textContent = '';
+            resultBody.innerHTML = '';
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Analyzing...';
+            resultContainer.style.display = 'none';
+
+            const payload = {
+                q1: document.getElementById('q1').value,
+                q2: document.getElementById('q2').value,
+                q3: document.querySelector('input[name="q3"]:checked').value,
+                q4: document.getElementById('q4').value,
+                q5: document.getElementById('q5').value,
+                q6: document.getElementById('q6').value,
+                q7: document.getElementById('q7').value,
+                q8: document.getElementById('q8').value,
+                q9: document.getElementById('q9').value,
+                q10: document.getElementById('q10').value.trim()
+            };
+
+            try {
+                const resp = await fetch('/recommend_career', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!resp.ok) throw new Error('Network response not OK');
+                const data = await resp.json();
+
+                resultTitle.textContent = data.recommendation;
+                let html = `<p><strong>Why:</strong> ${data.reason}</p>`;
+                if (data.skills && data.skills.length) {
+                    html += `<p><strong>Skills to focus on:</strong></p><ul>${data.skills.map(s => `<li>${s}</li>`).join('')}</ul>`;
+                }
+                if (data.steps && data.steps.length) {
+                    html += `<p><strong>Next steps:</strong></p><ol>${data.steps.map(s => `<li>${s}</li>`).join('')}</ol>`;
+                }
+                resultBody.innerHTML = html;
+                resultContainer.style.display = 'block';
+
+            } catch (err) {
+                resultTitle.textContent = 'Error';
+                resultBody.innerHTML = `<p>Could not get recommendation. Try again later.</p>`;
+                resultContainer.style.display = 'block';
+                console.error(err);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Get Recommendation';
+            }
+        });
+    </script>
 </body>
 </html>

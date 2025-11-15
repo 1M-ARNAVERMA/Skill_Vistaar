@@ -1,170 +1,166 @@
-import os
-import json
-import requests
 from flask import Flask, render_template, request, jsonify
-from dotenv import load_dotenv
+from flask import send_from_directory
+import re
 
-load_dotenv()
+app = Flask(__name__, static_folder='static', template_folder='templates')
 
-AI_API_KEY = os.getenv("AI_API_KEY")
-AI_API_URL = os.getenv("AI_API_URL")
-
-app = Flask(__name__, static_folder="static", template_folder="templates")
-
-
-def call_ai_api(prompt, system_msg="You are a helpful assistant. Return JSON only."):
-    headers = {
-        "Authorization": f"Bearer {AI_API_KEY}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "model": "gpt-4o-mini",
-        "messages": [
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": prompt},
-        ],
-        "temperature": 0.25,
-        "max_tokens": 600,
-    }
-    r = requests.post(AI_API_URL, headers=headers, json=payload, timeout=30)
-    r.raise_for_status()
-    # Parse model output (we expect plain text containing JSON)
-    return r.json()["choices"][0]["message"]["content"]
-
-
-@app.route("/")
+@app.route('/')
 def home():
-    return render_template("index.html")
+    return render_template('index.html')
 
-
-@app.route("/career-guidance")
+@app.route('/career-guidance')
 def career_guidance():
-    return render_template("career_guidance.html")
+    return render_template('career_guidance.html')
 
-
-@app.route("/skill-gap")
+@app.route('/skill-gap')
 def skill_gap():
-    return render_template("skill_gap.html")
+    return render_template('skill_gap.html')
 
-
-@app.route("/salary-forecasting")
+@app.route('/salary-forecasting')
 def salary_forecasting():
-    return render_template("salary_forecasting.html")
+    return render_template('salary_forecasting.html')
 
-
-@app.route("/mentorship")
+@app.route('/mentorship')
 def mentorship():
-    return render_template("mentorship.html")
+    return render_template('mentorship.html')
 
-
-@app.route("/networking")
+@app.route('/networking')
 def networking():
-    return render_template("networking.html")
+    return render_template('networking.html')
 
-
-@app.route("/login")
+@app.route('/login')
 def login():
-    return render_template("login.html")
+    return render_template('login.html')
 
+@app.route('/recommend_career', methods=['POST'])
+def recommend_career():
+    data = request.get_json() or {}
+    # Read answers (safe defaults)
+    q1 = (data.get('q1') or '').lower()
+    q2 = (data.get('q2') or '').lower()
+    q3 = (data.get('q3') or '').lower()
+    q4 = (data.get('q4') or '').lower()
+    q5 = (data.get('q5') or '').lower()
+    q6 = (data.get('q6') or '').lower()
+    q7 = (data.get('q7') or '').lower()
+    q8 = (data.get('q8') or '').lower()
+    q9 = (data.get('q9') or '').lower()
+    q10 = (data.get('q10') or '').strip()
 
-@app.route("/analyze_skill_gap", methods=["POST"])
-def analyze_skill_gap():
-    payload = request.get_json() or {}
-    company = payload.get("company", "").strip()
-    position = payload.get("position", "").strip()
-    skills = payload.get("skills", "").strip()
+    # Basic rule-based scoring to produce a single recommendation
+    # (Replace this block with a call to your AI API later.)
+    scores = {
+        'Software Engineer': 0,
+        'Data Scientist': 0,
+        'UX Designer': 0,
+        'Product Manager': 0,
+        'Business / Management': 0,
+        'Technical Writer': 0,
+        'Frontend Developer': 0,
+        'Researcher': 0
+    }
 
-    if not position:
-        return jsonify({"error": "position is required"}), 400
+    # heuristics
+    if q1 == 'programming':
+        scores['Software Engineer'] += 3
+        scores['Frontend Developer'] += 2
+        scores['Data Scientist'] += 1
+    if q1 == 'math':
+        scores['Data Scientist'] += 3
+        scores['Researcher'] += 2
+    if q1 == 'design':
+        scores['UX Designer'] += 3
+        scores['Frontend Developer'] += 1
+    if q1 == 'business':
+        scores['Product Manager'] += 3
+        scores['Business / Management'] += 2
+    if q1 == 'writing':
+        scores['Technical Writer'] += 3
 
-    prompt = f"""
-You are an assistant that must return VALID JSON only (no extra text).
-Input:
-company: "{company}"
-position: "{position}"
-current_skills: "{skills}"
+    if q3 == 'yes':
+        scores['Software Engineer'] += 1
+        scores['Frontend Developer'] += 1
+        scores['Data Scientist'] += 1
 
-Return a JSON object exactly in this format:
-{{
-  "missing_skills": ["skill1", "skill2", ...],
-  "recommended_learning_path": ["step1", "step2", ...]
-}}
-Use concise skill names and short learning steps. Do NOT include any explanatory text outside the JSON.
-    """
+    if q5 == 'yes':
+        scores['Data Scientist'] += 2
+    if q5 == 'sometimes':
+        scores['Data Scientist'] += 1
 
-    try:
-        ai_text = call_ai_api(prompt)
-        result = json.loads(ai_text)
-    except Exception as e:
-        return jsonify({"error": "AI processing failed", "detail": str(e)}), 502
+    if q4 == 'high':
+        scores['UX Designer'] += 2
+    if q6 == 'yes':
+        scores['Product Manager'] += 1
+        scores['Technical Writer'] += 1
 
-    return jsonify(result)
+    if q7 == 'startup':
+        scores['Software Engineer'] += 1
+        scores['Frontend Developer'] += 1
+    if q7 == 'academic':
+        scores['Researcher'] += 2
+        scores['Data Scientist'] += 1
 
+    if q8 == 'tech':
+        scores['Software Engineer'] += 2
+        scores['Frontend Developer'] += 1
+    if q8 == 'insights':
+        scores['Data Scientist'] += 2
+    if q8 == 'brand':
+        scores['UX Designer'] += 2
 
-@app.route("/forecast_salary", methods=["POST"])
-def forecast_salary():
-    payload = request.get_json() or {}
-    job = payload.get("job", "").strip()
-    location = payload.get("location", "").strip()
-    experience = payload.get("experience", "").strip()
-    skills = payload.get("skills", "").strip()
+    if q9 == 'mostly_code':
+        scores['Software Engineer'] += 2
+        scores['Frontend Developer'] += 1
+    if q9 == 'mostly_people':
+        scores['Product Manager'] += 2
+        scores['Business / Management'] += 1
 
-    if not job or not location or experience == "":
-        return jsonify({"error": "job, location, and experience are required"}), 400
+    # if user provided a keyword in q10, promote matches
+    if q10:
+        kw = q10.lower()
+        for role in list(scores.keys()):
+            if re.search(re.escape(role.split()[0].lower()), kw):
+                scores[role] += 4
 
-    prompt = f"""
-You are an assistant that returns JSON only.
-Input:
-job: "{job}"
-location: "{location}"
-experience_years: {experience}
-skills: "{skills}"
+    # choose top scoring
+    sorted_roles = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
+    top_role, top_score = sorted_roles[0]
 
-Return JSON exactly:
-{{
-  "min_salary": number,
-  "avg_salary": number,
-  "max_salary": number,
-  "recommended_skills": ["skill1", "skill2"],
-  "explanation": "short text"
-}}
-Provide yearly INR salary estimates (rounded to nearest 1000). Do NOT output anything else.
-    """
+    # Prepare a human-friendly response and suggestions
+    reasons = []
+    reasons.append(f"Based on your answers (subject preference {q1}, work style {q2}, creativity {q4})")
+    if top_role in ['Software Engineer', 'Frontend Developer']:
+        skills = ['Python', 'Data Structures & Algorithms', 'Git', 'Unit testing', 'Cloud basics']
+        steps = ['Build small projects', 'Contribute to open-source', 'Practice DS & Algo problems']
+    elif top_role == 'Data Scientist':
+        skills = ['Python', 'Machine Learning', 'Statistics', 'SQL', 'Data Visualization']
+        steps = ['Take a course in ML', 'Do Kaggle projects', 'Learn SQL and data cleaning']
+    elif top_role == 'UX Designer':
+        skills = ['Design fundamentals', 'Figma', 'User research', 'Prototyping']
+        steps = ['Create portfolio case studies', 'Practice user interviews', 'Learn Figma']
+    elif top_role == 'Product Manager':
+        skills = ['Roadmapping', 'Stakeholder communication', 'Prioritization', 'Metrics']
+        steps = ['Study product case studies', 'Practice writing PRDs', 'Talk to PMs']
+    elif top_role == 'Technical Writer':
+        skills = ['Writing', 'Documentation tools', 'Markdown', 'Explainer videos']
+        steps = ['Write tutorials', 'Start a technical blog', 'Learn API docs style']
+    elif top_role == 'Researcher':
+        skills = ['Statistics', 'Experiment design', 'Academic writing', 'Python/R']
+        steps = ['Read papers', 'Reproduce experiments', 'Join a research group']
+    else:
+        skills = ['Communication', 'Problem-solving', 'Teamwork']
+        steps = ['Work on group projects', 'Join internships', 'Build a portfolio']
 
-    try:
-        ai_text = call_ai_api(prompt)
-        result = json.loads(ai_text)
-    except Exception as e:
-        return jsonify({"error": "AI processing failed", "detail": str(e)}), 502
+    reason_text = f"I recommend: {top_role}. " + " ".join(reasons)
 
-    return jsonify(result)
+    response = {
+        "recommendation": top_role,
+        "reason": reason_text,
+        "skills": skills,
+        "steps": steps
+    }
 
+    return jsonify(response)
 
-@app.route("/career_quiz", methods=["POST"])
-def career_quiz():
-    payload = request.get_json() or {}
-    answers = payload.get("answers", {})
-
-    prompt = f"""
-You are an assistant that takes quiz answers and returns a single recommended career with explanation.
-Input: answers: {json.dumps(answers)}
-
-Return JSON only:
-{{
-  "recommended_career": "Career Name",
-  "reason": "one-line reason",
-  "next_steps": ["step1", "step2"]
-}}
-    """
-
-    try:
-        ai_text = call_ai_api(prompt)
-        result = json.loads(ai_text)
-    except Exception as e:
-        return jsonify({"error": "AI processing failed", "detail": str(e)}), 502
-
-    return jsonify(result)
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
