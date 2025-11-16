@@ -19,16 +19,27 @@
     <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
     <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
     <a href="{{ url_for('networking') }}">Networking Opportunities</a>
+    <a href="{{ url_for('contact') }}">Contact Us</a>
   </nav>
 
-  <main class="content">
-    <h1>Networking Opportunities</h1>
-    <section class="section">
+  <main class="page-container">
+
+    <!-- MAIN HEADING -->
+    <h1 class="page-title" style="text-align:center; margin-bottom:40px;">
+      Networking Opportunities
+    </h1>
+
+    <!-- SECTION 1 -->
+    <section class="content-card">
       <h2>Why Networking Matters</h2>
-      <p>Networking opens doors to mentorship, referral jobs, and industry insights.</p>
+      <p>
+        Networking opens doors to mentorship, referral-based opportunities, and real industry knowledge.
+        It helps you build meaningful professional relationships that lead to long-term career growth.
+      </p>
     </section>
 
-    <section class="section">
+    <!-- SECTION 2 -->
+    <section class="content-card">
       <h2>Upcoming Events</h2>
       <ul>
         <li>Virtual Tech Meetup — May 10, 2025</li>
@@ -36,23 +47,42 @@
       </ul>
     </section>
 
-    <section class="section">
-      <h2>Networking Dos & Don'ts</h2>
+    <!-- SECTION 3 -->
+    <section class="content-card">
+      <h2>Networking Dos & Don’ts</h2>
       <ul>
-        <li>Be specific in requests</li>
-        <li>Follow up politely</li>
+        <li>Be specific when reaching out.</li>
+        <li>Follow up politely.</li>
       </ul>
     </section>
 
-    <section class="section">
+    <!-- SECTION 4 -->
+    <section class="content-card">
       <h2>Success Stories</h2>
-      <div class="card-grid">
-        <div class="success-card"><h3>Ayushi Sharma</h3><p>"Connected & placed in 2 weeks!"</p></div>
-        <div class="success-card"><h3>Rohan Patel</h3><p>"Mentorship helped land data role."</p></div>
-        <div class="success-card"><h3>Sneha Gupta</h3><p>"Webinar introduced me to peers."</p></div>
-        <div class="success-card"><h3>Aditya Verma</h3><p>"Casual chat led to internship."</p></div>
+
+      <div class="success-list">
+        <div class="success-entry">
+          <h3>Ayushi Sharma</h3>
+          <p>"Connected & placed in 2 weeks!"</p>
+        </div>
+
+        <div class="success-entry">
+          <h3>Rohan Patel</h3>
+          <p>"Mentorship helped land a data role."</p>
+        </div>
+
+        <div class="success-entry">
+          <h3>Sneha Gupta</h3>
+          <p>"Webinar introduced me to peers."</p>
+        </div>
+
+        <div class="success-entry">
+          <h3>Aditya Verma</h3>
+          <p>"Casual chat led to internship."</p>
+        </div>
       </div>
     </section>
+
   </main>
 
   <footer class="footer-gradient"><p>© 2025 Skill Vistaar</p></footer>
