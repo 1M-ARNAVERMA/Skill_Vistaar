@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, jsonify
-from flask import send_from_directory
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import re
+import math
+import os
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -35,7 +36,6 @@ def login():
 @app.route('/recommend_career', methods=['POST'])
 def recommend_career():
     data = request.get_json() or {}
-    # Read answers (safe defaults)
     q1 = (data.get('q1') or '').lower()
     q2 = (data.get('q2') or '').lower()
     q3 = (data.get('q3') or '').lower()
@@ -47,8 +47,6 @@ def recommend_career():
     q9 = (data.get('q9') or '').lower()
     q10 = (data.get('q10') or '').strip()
 
-    # Basic rule-based scoring to produce a single recommendation
-    # (Replace this block with a call to your AI API later.)
     scores = {
         'Software Engineer': 0,
         'Data Scientist': 0,
@@ -60,7 +58,6 @@ def recommend_career():
         'Researcher': 0
     }
 
-    # heuristics
     if q1 == 'programming':
         scores['Software Engineer'] += 3
         scores['Frontend Developer'] += 2
@@ -115,18 +112,15 @@ def recommend_career():
         scores['Product Manager'] += 2
         scores['Business / Management'] += 1
 
-    # if user provided a keyword in q10, promote matches
     if q10:
         kw = q10.lower()
         for role in list(scores.keys()):
             if re.search(re.escape(role.split()[0].lower()), kw):
                 scores[role] += 4
 
-    # choose top scoring
     sorted_roles = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
     top_role, top_score = sorted_roles[0]
 
-    # Prepare a human-friendly response and suggestions
     reasons = []
     reasons.append(f"Based on your answers (subject preference {q1}, work style {q2}, creativity {q4})")
     if top_role in ['Software Engineer', 'Frontend Developer']:
@@ -161,7 +155,6 @@ def recommend_career():
     }
 
     return jsonify(response)
-
 
 @app.route('/analyze_skill_gap', methods=['POST'])
 def analyze_skill_gap():
@@ -223,6 +216,80 @@ def analyze_skill_gap():
         "notes": notes
     }
     return jsonify(response)
+
+@app.route('/predict_salary', methods=['POST'])
+def predict_salary():
+    data = request.get_json() or {}
+    job = (data.get('job') or '').strip().lower()
+    location = (data.get('location') or '').strip().lower()
+    experience = data.get('experience', 0)
+    try:
+        experience = float(experience)
+    except:
+        experience = 0.0
+    skills_raw = (data.get('skills') or '').strip().lower()
+    current_skills = [s.strip() for s in re.split(r',|\n|;', skills_raw) if s.strip()]
+
+    base_salary_db = {
+        "software engineer": {"min": 400000, "avg": 800000, "max": 1500000, "boost": ["system design", "cloud computing", "data structures", "algorithms"]},
+        "data scientist": {"min": 450000, "avg": 900000, "max": 1700000, "boost": ["machine learning", "deep learning", "sql", "pandas"]},
+        "web developer": {"min": 300000, "avg": 600000, "max": 1200000, "boost": ["react", "node.js", "rest apis"]},
+        "product manager": {"min": 500000, "avg": 1100000, "max": 2200000, "boost": ["roadmapping", "stakeholder communication", "metrics"]},
+        "devops": {"min": 450000, "avg": 900000, "max": 1600000, "boost": ["docker", "kubernetes", "ci/cd", "cloud"]},
+    }
+
+    matched = None
+    for key in base_salary_db:
+        if key in job:
+            matched = key
+            break
+    if matched is None:
+        for key in base_salary_db:
+            if key.split()[0] in job:
+                matched = key
+                break
+
+    if matched is None:
+        base = {"min": 300000, "avg": 600000, "max": 1200000, "boost": []}
+    else:
+        base = base_salary_db[matched]
+
+    exp_multiplier = 1 + min(experience, 10) * 0.06
+
+    location_boost = 1.0
+    metros = ["bengaluru", "bangalore", "mumbai", "delhi", "noida", "gurgaon", "hyderabad", "pune", "chennai", "bangalore"]
+    if any(city in location for city in metros):
+        location_boost = 1.10
+    elif location:
+        location_boost = 1.00
+
+    boost_skills = base.get("boost", [])
+    matched_boost_count = 0
+    for bs in boost_skills:
+        for s in current_skills:
+            if bs in s or s in bs:
+                matched_boost_count += 1
+                break
+    skills_boost_multiplier = 1 + min(matched_boost_count * 0.03, 0.15)
+
+    min_sal = math.floor(base["min"] * exp_multiplier * location_boost * skills_boost_multiplier)
+    avg_sal = math.floor(base["avg"] * exp_multiplier * location_boost * skills_boost_multiplier)
+    max_sal = math.floor(base["max"] * exp_multiplier * location_boost * skills_boost_multiplier)
+
+    normalized = [s.lower() for s in current_skills]
+    missing_boosts = [b for b in boost_skills if not any(b in s or s in b for s in normalized)]
+
+    result = {
+        "job": job,
+        "location": location,
+        "experience_years": experience,
+        "min": min_sal,
+        "avg": avg_sal,
+        "max": max_sal,
+        "missing_skills": missing_boosts,
+        "note": "These are estimates based on simple heuristics. For more accurate market data integrate a salary API (Payscale/Glassdoor/LinkedIn) or external dataset."
+    }
+    return jsonify(result)
 
 if __name__ == '__main__':
     app.run(debug=True)
