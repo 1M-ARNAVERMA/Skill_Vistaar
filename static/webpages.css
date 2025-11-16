@@ -133,3 +133,33 @@ footer {
     font-size: 22px;
     cursor: pointer;
 }
+
+/* Networking Page Card Style */
+.network-card {
+    width: 85%;
+    margin: 20px auto;
+    background: white;
+    border-radius: 12px;
+    padding: 25px 30px;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.12);
+    color: #1A3A6C;
+}
+
+.network-card h2 {
+    margin-top: 0;
+    font-size: 1.7rem;
+    color: #1A3A6C;
+}
+
+.network-card ul {
+    margin-left: 20px;
+    font-size: 1rem;
+}
+
+.success-entry {
+    background: #f2f5ff;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-top: 15px;
+    box-shadow: 0px 2px 9px rgba(0,0,0,0.08);
+}
