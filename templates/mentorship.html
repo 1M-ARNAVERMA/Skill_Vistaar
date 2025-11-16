@@ -19,30 +19,78 @@
     <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
     <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
     <a href="{{ url_for('networking') }}">Networking Opportunities</a>
+    <a href="{{ url_for('contact') }}">Contact Us</a>
   </nav>
 
-  <main class="content">
-    <h1>Mentorship Program</h1>
-    <div class="card-grid">
-      <div class="mentor-card">
-        <img src="{{ url_for('static', filename='Mentor Photos/Elon_musk.png') }}" alt="Elon">
+  <main class="page-container" style="padding-bottom:40px;">
+
+    <h1 class="page-title" style="text-align:center; margin-bottom:30px;">Mentorship</h1>
+
+    <!-- mentors grid -->
+    <section class="mentors-grid" aria-label="Mentors list">
+
+      <!-- Mentor: Elon Musk -->
+      <article class="mentor-card">
+        <div class="mentor-photo">
+          <img src="{{ url_for('static', filename='Mentor Photos/Elon_musk.png') }}" alt="Elon Musk">
+        </div>
         <h3>Elon Musk</h3>
-        <p>Entrepreneur — SpaceX, Tesla</p>
-        <a class="btn" href="https://en.wikipedia.org/wiki/Elon_Musk" target="_blank">View Profile</a>
-      </div>
-      <div class="mentor-card">
-        <img src="{{ url_for('static', filename='Mentor Photos/Bill_Gates.webp') }}" alt="Bill">
+        <p class="muted">Entrepreneur — SpaceX, Tesla</p>
+        <a class="btn small" href="https://en.wikipedia.org/wiki/Elon_Musk" target="_blank" rel="noopener">View Profile</a>
+      </article>
+
+      <!-- Mentor: Bill Gates -->
+      <article class="mentor-card">
+        <div class="mentor-photo">
+          <img src="{{ url_for('static', filename='Mentor Photos/Bill_Gates.webp') }}" alt="Bill Gates">
+        </div>
         <h3>Bill Gates</h3>
-        <p>Philanthropy & Tech</p>
-        <a class="btn" href="https://en.wikipedia.org/wiki/Bill_Gates" target="_blank">View Profile</a>
-      </div>
-      <div class="mentor-card">
-        <img src="{{ url_for('static', filename='Mentor Photos/Jeff_bezos.jpeg') }}" alt="Jeff">
+        <p class="muted">Philanthropy & Tech</p>
+        <a class="btn small" href="https://en.wikipedia.org/wiki/Bill_Gates" target="_blank" rel="noopener">View Profile</a>
+      </article>
+
+      <!-- Mentor: Jeff Bezos -->
+      <article class="mentor-card">
+        <div class="mentor-photo">
+          <img src="{{ url_for('static', filename='Mentor Photos/Jeff_bezos.jpeg') }}" alt="Jeff Bezos">
+        </div>
         <h3>Jeff Bezos</h3>
-        <p>eCommerce & Cloud</p>
-        <a class="btn" href="https://en.wikipedia.org/wiki/Jeff_Bezos" target="_blank">View Profile</a>
-      </div>
-    </div>
+        <p class="muted">eCommerce & Cloud</p>
+        <a class="btn small" href="https://en.wikipedia.org/wiki/Jeff_Bezos" target="_blank" rel="noopener">View Profile</a>
+      </article>
+
+      <!-- Mentor: Sundar Pichai -->
+      <article class="mentor-card">
+        <div class="mentor-photo">
+          <img src="{{ url_for('static', filename='Mentor Photos/Sundar_pichai.jpeg') }}" alt="Sundar Pichai">
+        </div>
+        <h3>Sundar Pichai</h3>
+        <p class="muted">Product & Engineering</p>
+        <a class="btn small" href="https://en.wikipedia.org/wiki/Sundar_Pichai" target="_blank" rel="noopener">View Profile</a>
+      </article>
+
+      <!-- Mentor: Mukesh Ambani -->
+      <article class="mentor-card">
+        <div class="mentor-photo">
+          <img src="{{ url_for('static', filename='Mentor Photos/Mukesh_Ambani.jpeg') }}" alt="Mukesh Ambani">
+        </div>
+        <h3>Mukesh Ambani</h3>
+        <p class="muted">Industry & Telecom</p>
+        <a class="btn small" href="https://en.wikipedia.org/wiki/Mukesh_Ambani" target="_blank" rel="noopener">View Profile</a>
+      </article>
+
+      <!-- Mentor: Jason Brooks (example) -->
+      <article class="mentor-card">
+        <div class="mentor-photo">
+          <img src="{{ url_for('static', filename='Mentor Photos/Jason Brooks.jpeg') }}" alt="Jason Brooks">
+        </div>
+        <h3>Jason Brooks</h3>
+        <p class="muted">Design & UX</p>
+        <a class="btn small" href="#" target="_blank" rel="noopener">View Profile</a>
+      </article>
+
+    </section><!-- .mentors-grid -->
+
   </main>
 
   <footer class="footer-gradient"><p>© 2025 Skill Vistaar</p></footer>
