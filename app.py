@@ -1,7 +1,6 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify
+from flask import send_from_directory
 import re
-import math
-import os
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -221,75 +220,62 @@ def analyze_skill_gap():
 def predict_salary():
     data = request.get_json() or {}
     job = (data.get('job') or '').strip().lower()
-    location = (data.get('location') or '').strip().lower()
+    location = (data.get('location') or '').strip()
     experience = data.get('experience', 0)
-    try:
-        experience = float(experience)
-    except:
-        experience = 0.0
     skills_raw = (data.get('skills') or '').strip().lower()
     current_skills = [s.strip() for s in re.split(r',|\n|;', skills_raw) if s.strip()]
 
-    base_salary_db = {
-        "software engineer": {"min": 400000, "avg": 800000, "max": 1500000, "boost": ["system design", "cloud computing", "data structures", "algorithms"]},
-        "data scientist": {"min": 450000, "avg": 900000, "max": 1700000, "boost": ["machine learning", "deep learning", "sql", "pandas"]},
-        "web developer": {"min": 300000, "avg": 600000, "max": 1200000, "boost": ["react", "node.js", "rest apis"]},
-        "product manager": {"min": 500000, "avg": 1100000, "max": 2200000, "boost": ["roadmapping", "stakeholder communication", "metrics"]},
-        "devops": {"min": 450000, "avg": 900000, "max": 1600000, "boost": ["docker", "kubernetes", "ci/cd", "cloud"]},
+    salary_data = {
+        "software engineer": {"min": 400000, "avg": 800000, "max": 1500000, "boost": ["system design", "cloud computing", "data structures & algorithms", "unit testing"]},
+        "data scientist": {"min": 500000, "avg": 950000, "max": 1700000, "boost": ["machine learning", "deep learning", "sql", "statistics"]},
+        "web developer": {"min": 300000, "avg": 600000, "max": 1200000, "boost": ["react", "node.js", "rest apis", "javascript"]},
+        "frontend developer": {"min": 350000, "avg": 650000, "max": 1250000, "boost": ["react", "javascript", "css", "accessibility"]},
+        "backend engineer": {"min": 380000, "avg": 720000, "max": 1400000, "boost": ["apis", "databases", "docker", "sql"]},
+        "data analyst": {"min": 250000, "avg": 450000, "max": 900000, "boost": ["sql", "excel", "data visualization", "python"]},
     }
 
     matched = None
-    for key in base_salary_db:
+    for key in salary_data.keys():
         if key in job:
             matched = key
             break
     if matched is None:
-        for key in base_salary_db:
+        for key in salary_data.keys():
             if key.split()[0] in job:
                 matched = key
                 break
 
     if matched is None:
-        base = {"min": 300000, "avg": 600000, "max": 1200000, "boost": []}
-    else:
-        base = base_salary_db[matched]
+        matched = "software engineer"
 
-    exp_multiplier = 1 + min(experience, 10) * 0.06
+    entry = salary_data[matched]
+    boost_skills = entry.get("boost", [])
+    missing = [s for s in boost_skills if not any(s in cs or cs in s for cs in current_skills)]
 
-    location_boost = 1.0
-    metros = ["bengaluru", "bangalore", "mumbai", "delhi", "noida", "gurgaon", "hyderabad", "pune", "chennai", "bangalore"]
-    if any(city in location for city in metros):
-        location_boost = 1.10
-    elif location:
-        location_boost = 1.00
+    # small adjustment by experience (very simple)
+    try:
+        exp = float(experience)
+    except Exception:
+        exp = 0.0
+    multiplier = 1.0 + min(max(exp - 1.0, 0.0) * 0.06, 0.6)
 
-    boost_skills = base.get("boost", [])
-    matched_boost_count = 0
-    for bs in boost_skills:
-        for s in current_skills:
-            if bs in s or s in bs:
-                matched_boost_count += 1
-                break
-    skills_boost_multiplier = 1 + min(matched_boost_count * 0.03, 0.15)
+    min_salary = int(entry["min"] * multiplier)
+    avg_salary = int(entry["avg"] * multiplier)
+    max_salary = int(entry["max"] * multiplier)
 
-    min_sal = math.floor(base["min"] * exp_multiplier * location_boost * skills_boost_multiplier)
-    avg_sal = math.floor(base["avg"] * exp_multiplier * location_boost * skills_boost_multiplier)
-    max_sal = math.floor(base["max"] * exp_multiplier * location_boost * skills_boost_multiplier)
+    note = ""
+    if location:
+        note = f"Salaries vary by city. This is a rough estimate for {location}."
 
-    normalized = [s.lower() for s in current_skills]
-    missing_boosts = [b for b in boost_skills if not any(b in s or s in b for s in normalized)]
-
-    result = {
-        "job": job,
-        "location": location,
-        "experience_years": experience,
-        "min": min_sal,
-        "avg": avg_sal,
-        "max": max_sal,
-        "missing_skills": missing_boosts,
-        "note": "These are estimates based on simple heuristics. For more accurate market data integrate a salary API (Payscale/Glassdoor/LinkedIn) or external dataset."
+    response = {
+        "job": matched,
+        "min": min_salary,
+        "avg": avg_salary,
+        "max": max_salary,
+        "missing_skills": missing,
+        "note": note
     }
-    return jsonify(result)
+    return jsonify(response)
 
 if __name__ == '__main__':
     app.run(debug=True)

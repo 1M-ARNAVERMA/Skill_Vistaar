@@ -3,58 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <title>Salary Forecasting</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
     <style>
-        .page-wrap {
-            display: flex;
-            gap: 30px;
-            max-width: 1100px;
-            margin: 40px auto;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .form-card, .result-card {
+        .form-container {
+            max-width: 900px;
+            margin: 70px auto 40px;
             background: #fff;
+            padding: 28px;
             border-radius: 10px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.07);
-            padding: 26px;
-            flex: 1;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         }
-        .form-card h2, .result-card h2 {
-            margin-top: 0;
-            color: #1A3A6C;
+        label { display:block; margin-bottom:6px; font-weight:600; color:#1A3A6C; }
+        input, textarea {
+            width:100%; padding:10px; margin-bottom:14px; border:1px solid #ddd; border-radius:6px;
+            font-size:1rem; box-sizing:border-box;
         }
-        label {
-            display: block;
-            margin: 12px 0 6px;
-            color: #1A3A6C;
-            font-weight: 600;
+        button#submitBtn {
+            display:inline-flex; align-items:center; justify-content:center;
+            gap:10px; padding:12px 20px; background:#00A859; color:white; border:none; border-radius:8px;
+            font-size:16px; cursor:pointer;
         }
-        input[type="text"], input[type="number"], textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            box-sizing: border-box;
+        button#submitBtn[disabled] { opacity:0.7; cursor:not-allowed; }
+        #btn-spinner {
+            display:inline-block; width:16px; height:16px; border:3px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius:50%; animation: spin 1s linear infinite;
         }
-        textarea { min-height: 100px; }
-        button.primary {
-            background: #00A859;
-            color: white;
-            border: none;
-            padding: 12px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 12px;
-        }
-        .small-muted { color: #666; font-size: 0.9rem; margin-top: 6px; }
-        .result-list { list-style: none; padding-left: 0; }
-        .result-list li { margin: 8px 0; font-size: 1rem; color: #1A3A6C; }
-        .hidden { display: none; }
-        .loader { display:inline-block; width:14px; height:14px; border:2px solid rgba(0,0,0,0.15); border-left-color:#00A859; border-radius:50%; animation:spin .8s linear infinite; vertical-align: middle; margin-left:8px;}
+        .hidden { display:none !important; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 900px) {
-            .page-wrap { flex-direction: column; padding: 10px; }
+
+        #result-container {
+            margin-top:18px; background:#f4fdf7; padding:18px; border-radius:8px; display:none;
+        }
+
+        /* make page responsive */
+        @media (max-width: 720px) {
+            .form-container { margin: 90px 12px; padding:18px; }
         }
     </style>
 </head>
@@ -66,7 +50,7 @@
         </nav>
     </header>
 
-    <div id="sidebar" class="sidebar">
+    <div id="sidebar" class="sidebar" aria-hidden="true">
         <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">⮿</a>
         <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
         <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
@@ -76,91 +60,111 @@
     </div>
 
     <main>
-        <div class="page-wrap">
-            <div class="form-card">
-                <h2>Salary Forecasting</h2>
+        <div class="form-container">
+            <h2>Salary Forecasting Tool</h2>
+            <form id="salaryForm">
+                <label for="job">Job Title:</label>
+                <input type="text" id="job" name="job" placeholder="e.g. Software Engineer" required>
 
-                <form id="salaryForm">
-                    <label for="job">Job Title</label>
-                    <input id="job" name="job" type="text" placeholder="e.g. Software Engineer" required>
+                <label for="location">Location:</label>
+                <input type="text" id="location" name="location" placeholder="e.g. Bangalore">
 
-                    <label for="location">Location</label>
-                    <input id="location" name="location" type="text" placeholder="e.g. Bangalore">
+                <label for="experience">Years of Experience:</label>
+                <input type="number" id="experience" name="experience" min="0" placeholder="e.g. 2">
 
-                    <label for="experience">Years of Experience</label>
-                    <input id="experience" name="experience" type="number" min="0" step="0.5" placeholder="e.g. 2">
+                <label for="skills">Current Skills (comma separated):</label>
+                <textarea id="skills" name="skills" rows="3" placeholder="e.g. python, sql, git"></textarea>
 
-                    <label for="skills">Current Skills (comma separated)</label>
-                    <textarea id="skills" name="skills" placeholder="e.g. python, git, sql"></textarea>
-
-                    <button type="submit" class="primary">Get Salary Forecast <span id="spinner" class="hidden loader"></span></button>
-                </form>
-                <p id="form-note" class="small-muted">Tip: use role names like "Software Engineer", "Data Scientist", "Web Developer".</p>
-            </div>
-
-            <div id="resultCard" class="result-card hidden">
-                <h2>Forecast Result</h2>
-                <div id="resultContent">
-                    <!-- result injected here -->
+                <div style="margin-top:8px;">
+                    <button id="submitBtn" type="submit">
+                        <span id="btn-text">Get Salary Forecast</span>
+                        <span id="btn-spinner" class="hidden" aria-hidden="true"></span>
+                    </button>
                 </div>
-            </div>
+            </form>
+
+            <div id="result-container" role="region" aria-live="polite"></div>
         </div>
     </main>
 
     <footer>
         <div class="footer-gradient"></div>
-        <p>&copy; 2025 Skill Vistaar</p>
+        <p>&copy; 2025 Skill Vistaar. All rights reserved.</p>
     </footer>
 
     <script>
-        function openSidebar(){ document.getElementById("sidebar").style.width = "250px"; }
-        function closeSidebar(){ document.getElementById("sidebar").style.width = "0"; }
+        function openSidebar() {
+            document.getElementById("sidebar").style.width = "260px";
+            document.getElementById("sidebar").setAttribute('aria-hidden', 'false');
+        }
+        function closeSidebar() {
+            document.getElementById("sidebar").style.width = "0";
+            document.getElementById("sidebar").setAttribute('aria-hidden', 'true');
+        }
 
-        const form = document.getElementById('salaryForm');
-        const resultCard = document.getElementById('resultCard');
-        const resultContent = document.getElementById('resultContent');
-        const spinner = document.getElementById('spinner');
+        const form = document.getElementById("salaryForm");
+        const resultDiv = document.getElementById("result-container");
+        const submitBtn = document.getElementById("submitBtn");
+        const btnText = document.getElementById("btn-text");
+        const btnSpinner = document.getElementById("btn-spinner");
 
-        form.addEventListener('submit', async function(e){
+        form.addEventListener("submit", async function (e) {
             e.preventDefault();
-            resultCard.classList.add('hidden');
-            resultContent.innerHTML = '';
-            spinner.classList.remove('hidden');
 
             const payload = {
-                job: form.job.value.trim(),
-                location: form.location.value.trim(),
-                experience: form.experience.value.trim(),
-                skills: form.skills.value.trim()
+                job: (form.job.value || "").trim(),
+                location: (form.location.value || "").trim(),
+                experience: form.experience.value || 0,
+                skills: (form.skills.value || "").trim()
             };
 
-            try {
-                const res = await fetch('/predict_salary', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(payload)
-                });
-                if(!res.ok) throw new Error('Server returned ' + res.status);
-                const data = await res.json();
+            resultDiv.innerHTML = "";
+            resultDiv.style.display = "none";
 
-                const html = `
-                    <p class="small-muted">Role: <strong>${payload.job || '—'}</strong> &nbsp; Location: <strong>${payload.location || '—'}</strong> &nbsp; Experience: <strong>${payload.experience || 0} yrs</strong></p>
-                    <ul class="result-list">
-                        <li><strong>Minimum salary:</strong> ₹${data.min.toLocaleString()}</li>
-                        <li><strong>Average salary:</strong> ₹${data.avg.toLocaleString()}</li>
-                        <li><strong>Maximum salary:</strong> ₹${data.max.toLocaleString()}</li>
+            submitBtn.disabled = true;
+            btnSpinner.classList.remove("hidden");
+            btnText.textContent = "Loading";
+
+            try {
+                const resp = await fetch("/predict_salary", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!resp.ok) {
+                    const txt = await resp.text();
+                    throw new Error(`Server returned ${resp.status}: ${txt}`);
+                }
+
+                const data = await resp.json();
+
+                const jobLabel = (data.job || payload.job || "role");
+                const minStr = data.min ? `₹${Number(data.min).toLocaleString()}` : "N/A";
+                const avgStr = data.avg ? `₹${Number(data.avg).toLocaleString()}` : "N/A";
+                const maxStr = data.max ? `₹${Number(data.max).toLocaleString()}` : "N/A";
+
+                resultDiv.innerHTML = `
+                    <h3>Forecast for ${jobLabel.charAt(0).toUpperCase() + jobLabel.slice(1)}</h3>
+                    <ul>
+                        <li><strong>Minimum:</strong> ${minStr}</li>
+                        <li><strong>Average:</strong> ${avgStr}</li>
+                        <li><strong>Maximum:</strong> ${maxStr}</li>
                     </ul>
-                    <h4>Skills to learn to boost salary</h4>
-                    <ul>${data.missing_skills && data.missing_skills.length ? data.missing_skills.map(s => `<li>${s}</li>`).join('') : '<li>None — you already have core boost skills</li>'}</ul>
-                    <p class="small-muted">${data.note || ''}</p>
+                    <h4>Recommended skills to boost salary:</h4>
+                    <ul>${(data.missing_skills && data.missing_skills.length) ? data.missing_skills.map(s => `<li>${s}</li>`).join('') : '<li>None — you already have core boost skills</li>'}</ul>
+                    <p style="margin-top:8px">${data.note || ''}</p>
                 `;
-                resultContent.innerHTML = html;
-                resultCard.classList.remove('hidden');
+                resultDiv.style.display = "block";
+
             } catch (err) {
-                resultContent.innerHTML = `<p style="color:red">Error: ${err.message}</p>`;
-                resultCard.classList.remove('hidden');
+                console.error(err);
+                resultDiv.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+                resultDiv.style.display = "block";
             } finally {
-                spinner.classList.add('hidden');
+                submitBtn.disabled = false;
+                btnSpinner.classList.add("hidden");
+                btnText.textContent = "Get Salary Forecast";
             }
         });
     </script>
