@@ -1,99 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Salary Forecasting - Skill Vistaar</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
+    <meta charset="UTF-8">
+    <title>Salary Forecasting</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
+    <style>
+        .page-wrap {
+            display: flex;
+            gap: 30px;
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .form-card, .result-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+            padding: 26px;
+            flex: 1;
+        }
+        .form-card h2, .result-card h2 {
+            margin-top: 0;
+            color: #1A3A6C;
+        }
+        label {
+            display: block;
+            margin: 12px 0 6px;
+            color: #1A3A6C;
+            font-weight: 600;
+        }
+        input[type="text"], input[type="number"], textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+        textarea { min-height: 100px; }
+        button.primary {
+            background: #00A859;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        .small-muted { color: #666; font-size: 0.9rem; margin-top: 6px; }
+        .result-list { list-style: none; padding-left: 0; }
+        .result-list li { margin: 8px 0; font-size: 1rem; color: #1A3A6C; }
+        .hidden { display: none; }
+        .loader { display:inline-block; width:14px; height:14px; border:2px solid rgba(0,0,0,0.15); border-left-color:#00A859; border-radius:50%; animation:spin .8s linear infinite; vertical-align: middle; margin-left:8px;}
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 900px) {
+            .page-wrap { flex-direction: column; padding: 10px; }
+        }
+    </style>
 </head>
 <body>
-  <header class="navbar">
-    <button class="menu-icon" onclick="openSidebar()">☰</button>
-    <a class="logo" href="{{ url_for('home') }}">SKILL VISTAAR</a>
-  </header>
+    <header>
+        <nav class="navbar">
+            <span class="menu-icon" onclick="openSidebar()">&#9776;</span>
+            <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
+        </nav>
+    </header>
 
-  <nav id="sidebar" class="sidebar">
-    <button class="close-btn" onclick="closeSidebar()">✕</button>
-    <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
-    <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
-    <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
-    <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
-    <a href="{{ url_for('networking') }}">Networking Opportunities</a>
-  </nav>
+    <div id="sidebar" class="sidebar">
+        <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">⮿</a>
+        <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
+        <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
+        <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
+        <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
+        <a href="{{ url_for('networking') }}">Networking Opportunities</a>
+    </div>
 
-  <main class="content form-page">
-    <h1>Salary Forecasting</h1>
-    <form id="salaryForm" class="form-card">
-      <label>Job Title</label>
-      <input name="job" type="text" required placeholder="e.g. Software Engineer">
+    <main>
+        <div class="page-wrap">
+            <div class="form-card">
+                <h2>Salary Forecasting</h2>
+                <p class="small-muted">Enter details below — results are estimated and come from the server API.</p>
 
-      <label>Location</label>
-      <input name="location" type="text" required placeholder="e.g. Bangalore">
+                <form id="salaryForm">
+                    <label for="job">Job Title</label>
+                    <input id="job" name="job" type="text" placeholder="e.g. Software Engineer" required>
 
-      <label>Years of Experience</label>
-      <input name="experience" type="number" min="0" required placeholder="e.g. 2">
+                    <label for="location">Location</label>
+                    <input id="location" name="location" type="text" placeholder="e.g. Bangalore">
 
-      <label>Current Skills (comma separated)</label>
-      <textarea name="skills" rows="3" placeholder="python, data structures"></textarea>
+                    <label for="experience">Years of Experience</label>
+                    <input id="experience" name="experience" type="number" min="0" step="0.5" placeholder="e.g. 2">
 
-      <button type="submit" class="btn">Get Salary Forecast</button>
-    </form>
+                    <label for="skills">Current Skills (comma separated)</label>
+                    <textarea id="skills" name="skills" placeholder="e.g. python, git, sql"></textarea>
 
-    <div id="salary-result" class="result-card" style="display:none"></div>
-  </main>
+                    <button type="submit" class="primary">Get Salary Forecast <span id="spinner" class="hidden loader"></span></button>
+                </form>
+                <p id="form-note" class="small-muted">Tip: use role names like "Software Engineer", "Data Scientist", "Web Developer".</p>
+            </div>
 
-  <footer class="footer-gradient"><p>© 2025 Skill Vistaar</p></footer>
+            <div id="resultCard" class="result-card hidden">
+                <h2>Forecast Result</h2>
+                <div id="resultContent">
+                    <!-- result injected here -->
+                </div>
+            </div>
+        </div>
+    </main>
 
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const form = document.getElementById('salaryForm');
-      const resultDiv = document.getElementById('salary-result');
+    <footer>
+        <div class="footer-gradient"></div>
+        <p>&copy; 2025 Skill Vistaar</p>
+    </footer>
 
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        resultDiv.style.display = 'block';
-        resultDiv.innerHTML = '<em>Processing…</em>';
+    <script>
+        function openSidebar(){ document.getElementById("sidebar").style.width = "250px"; }
+        function closeSidebar(){ document.getElementById("sidebar").style.width = "0"; }
 
-        const formData = new FormData(form);
-        const payload = {
-          job: formData.get('job') || "",
-          location: formData.get('location') || "",
-          experience: formData.get('experience') || "",
-          skills: formData.get('skills') || ""
-        };
+        const form = document.getElementById('salaryForm');
+        const resultCard = document.getElementById('resultCard');
+        const resultContent = document.getElementById('resultContent');
+        const spinner = document.getElementById('spinner');
 
-        try {
-          const res = await fetch('/forecast_salary', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
-          });
-          const data = await res.json();
-          if (data.error) {
-            resultDiv.innerHTML = `<p class="error">${data.error}</p>`;
-            return;
-          }
-          const min = Number(data.min_salary || 0).toLocaleString('en-IN');
-          const avg = Number(data.avg_salary || 0).toLocaleString('en-IN');
-          const max = Number(data.max_salary || 0).toLocaleString('en-IN');
+        form.addEventListener('submit', async function(e){
+            e.preventDefault();
+            resultCard.classList.add('hidden');
+            resultContent.innerHTML = '';
+            spinner.classList.remove('hidden');
 
-          resultDiv.innerHTML = `
-            <h3>Salary Forecast</h3>
-            <ul>
-              <li><strong>Min:</strong> ₹${min}</li>
-              <li><strong>Avg:</strong> ₹${avg}</li>
-              <li><strong>Max:</strong> ₹${max}</li>
-            </ul>
-            <h4>Skills to Boost Salary</h4>
-            <ul>${(data.recommended_skills || []).map(s => `<li>${s}</li>`).join('')}</ul>
-            <p>${data.explanation || ""}</p>
-          `;
-        } catch (err) {
-          resultDiv.innerHTML = `<p class="error">Request failed: ${err}</p>`;
-        }
-      });
-    });
-  </script>
+            const payload = {
+                job: form.job.value.trim(),
+                location: form.location.value.trim(),
+                experience: form.experience.value.trim(),
+                skills: form.skills.value.trim()
+            };
+
+            try {
+                const res = await fetch('/predict_salary', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                if(!res.ok) throw new Error('Server returned ' + res.status);
+                const data = await res.json();
+
+                const html = `
+                    <p class="small-muted">Role: <strong>${payload.job || '—'}</strong> &nbsp; Location: <strong>${payload.location || '—'}</strong> &nbsp; Experience: <strong>${payload.experience || 0} yrs</strong></p>
+                    <ul class="result-list">
+                        <li><strong>Minimum salary:</strong> ₹${data.min.toLocaleString()}</li>
+                        <li><strong>Average salary:</strong> ₹${data.avg.toLocaleString()}</li>
+                        <li><strong>Maximum salary:</strong> ₹${data.max.toLocaleString()}</li>
+                    </ul>
+                    <h4>Skills to learn to boost salary</h4>
+                    <ul>${data.missing_skills && data.missing_skills.length ? data.missing_skills.map(s => `<li>${s}</li>`).join('') : '<li>None — you already have core boost skills</li>'}</ul>
+                    <p class="small-muted">${data.note || ''}</p>
+                `;
+                resultContent.innerHTML = html;
+                resultCard.classList.remove('hidden');
+            } catch (err) {
+                resultContent.innerHTML = `<p style="color:red">Error: ${err.message}</p>`;
+                resultCard.classList.remove('hidden');
+            } finally {
+                spinner.classList.add('hidden');
+            }
+        });
+    </script>
 </body>
 </html>
