@@ -1,6 +1,13 @@
 from flask import Flask, render_template, request, jsonify
 from flask import send_from_directory
 import re
+import os
+import openai          
+from flask import Flask, render_template, request, jsonify
+
+from dotenv import load_dotenv
+load_dotenv()
+
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -281,6 +288,90 @@ def predict_salary():
 def contact():
     return render_template('contact.html')
 
+@app.route('/api/career-recommend', methods=['POST'])
+def career_recommend_api():
+    """
+    Accepts JSON { "answers": { "q1": "...", ..., "q10": "..." } }
+    Returns JSON: { role, reason, recommended_skills }.
+    """
+
+    data = request.get_json() or {}
+    answers = data.get("answers", {})
+    # collect answers q1..q10
+    q = { f"q{i}": (answers.get(f"q{i}", "") or "").strip() for i in range(1, 11) }
+
+    # simple validation: require at least non-empty answers for a few keys
+    if not any(v for v in q.values()):
+        return jsonify({"error": "No answers provided."}), 400
+
+    # Build a tight prompt that uses the interest-style answers
+    prompt = f"""
+You are a concise, practical career advisor. A user answered 10 short interest-based prompts (each 1-3 words). Using these, recommend a single most suitable job role and give a short reason and a prioritized list of 5 practical skills or next steps. RETURN ONLY valid JSON with keys: role, reason, recommended_skills (comma-separated).
+
+User answers:
+1) {q['q1']}
+2) {q['q2']}
+3) {q['q3']}
+4) {q['q4']}
+5) {q['q5']}
+6) {q['q6']}
+7) {q['q7']}
+8) {q['q8']}
+9) {q['q9']}
+10) {q['q10']}
+
+Rules:
+- role: one short job title (5 words max).
+- reason: 1-2 short sentences linking user's interests to the role.
+- recommended_skills: up to 5 comma-separated specific skills or steps (e.g., "Python, SQL, portfolio projects").
+- Do not add greetings or extra text. Output must be pure JSON only.
+"""
+
+    # OpenAI key check
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if not openai_api_key:
+        return jsonify({"error": "OpenAI API key not configured on server."}), 500
+
+    try:
+        openai.api_key = openai_api_key
+        resp = openai.ChatCompletion.create(
+            model="gpt-4o-mini",     # change to model you have access to
+            messages=[
+                {"role": "system", "content": "You are a concise career advisor."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=280,
+            temperature=0.2,
+            n=1
+        )
+
+        raw = resp['choices'][0]['message']['content'].strip()
+
+        # Try parse JSON exactly; fallback to extracting JSON block
+        try:
+            parsed = json.loads(raw)
+        except Exception:
+            m = re.search(r'\{.*\}', raw, re.S)
+            if m:
+                parsed = json.loads(m.group(0))
+            else:
+                # fallback: return raw text as reason
+                parsed = {"role": "", "reason": raw, "recommended_skills": ""}
+
+        role = (parsed.get("role") or "").strip()
+        reason = (parsed.get("reason") or "").strip()
+        rec_skills = (parsed.get("recommended_skills") or "").strip()
+
+        # If role empty, try simple heuristic: take first line before newline
+        if not role and reason:
+            first_line = reason.splitlines()[0].strip()
+            role = first_line if len(first_line) < 60 else ""
+
+        return jsonify({"role": role, "reason": reason, "recommended_skills": rec_skills})
+    except openai.error.OpenAIError as e:
+        return jsonify({"error": "AI service error: " + str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": "Server error: " + str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

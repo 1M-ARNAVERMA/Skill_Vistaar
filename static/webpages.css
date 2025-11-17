@@ -268,3 +268,42 @@ footer {
         width: 260px; /* keeps consistent 3+ columns depending on container width */
     }
 }
+
+/* Career guidance form grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 26px;
+  margin-top: 12px;
+}
+
+.field label {
+  display: block;
+  font-weight: 700;
+  color: #1A3A6C;
+  margin-bottom: 6px;
+  font-size: 0.98rem;
+}
+
+.field input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(26,58,108,0.12);
+  border-radius: 8px;
+  font-size: 0.98rem;
+  box-sizing: border-box;
+  color: #1A3A6C;
+}
+
+.error {
+  color: #b82b2b;
+  font-size: 0.9rem;
+  margin-top: 6px;
+  min-height: 18px;
+}
+
+/* single column on small screens */
+@media (max-width: 780px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .network-card { padding: 18px; }
+}
