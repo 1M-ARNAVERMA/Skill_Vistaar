@@ -2,16 +2,21 @@ from flask import Flask, render_template, request, jsonify
 from flask import send_from_directory
 import re
 import os
-import openai          
 from flask import Flask, render_template, request, jsonify
 import json
-
+from google import genai
 
 from dotenv import load_dotenv
-load_dotenv()
-
+load_dotenv(dotenv_path='.env')
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
+
+GENIE_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GENIE_API_KEY:
+    print("Warning: GEMINI_API_KEY not set")
+
+# configure the genai client to use an API key
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 @app.route('/')
 def home():
@@ -293,22 +298,27 @@ def contact():
 @app.route('/api/career-recommend', methods=['POST'])
 def career_recommend_api():
     """
-    Accepts JSON { "answers": { "q1": "...", ..., "q10": "..." } }
-    Returns JSON: { role, reason, recommended_skills }.
+    Robust, cleaned-up career recommendation endpoint for Google Gemini (genai).
+    Expects JSON: { "answers": { "q1":"...", ..., "q10":"..." } }
+    Returns JSON: { "role": ..., "reason": ..., "recommended_skills": ... }
     """
-
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     answers = data.get("answers", {})
-    # collect answers q1..q10
-    q = { f"q{i}": (answers.get(f"q{i}", "") or "").strip() for i in range(1, 11) }
 
-    # simple validation: require at least non-empty answers for a few keys
-    if not any(v for v in q.values()):
+    # Normalize inputs q1..q10
+    q = {f"q{i}": (answers.get(f"q{i}", "") or "").strip() for i in range(1, 11)}
+    if not any(q.values()):
         return jsonify({"error": "No answers provided."}), 400
 
-    # Build a tight prompt that uses the interest-style answers
-    prompt = f"""
-You are a concise, practical career advisor. A user answered 10 short interest-based prompts (each 1-3 words). Using these, recommend a single most suitable job role and give a short reason and a prioritized list of 5 practical skills or next steps. RETURN ONLY valid JSON with keys: role, reason, recommended_skills (comma-separated).
+    # Build the prompt asking for strict JSON output
+    prompt = f"""You are a concise, practical career counselor.
+A student answered 10 short interest-based prompts (1-3 words each).
+Using these answers, RECOMMEND a single best-fit job role and provide:
+  - role: one short job title (<=5 words)
+  - reason: 1-2 sentence explanation
+  - recommended_skills: comma-separated list of up to 5 practical skills/next steps
+
+RETURN ONLY valid JSON with keys: role, reason, recommended_skills
 
 User answers:
 1) {q['q1']}
@@ -321,59 +331,101 @@ User answers:
 8) {q['q8']}
 9) {q['q9']}
 10) {q['q10']}
-
-Rules:
-- role: one short job title (5 words max).
-- reason: 1-2 short sentences linking user's interests to the role.
-- recommended_skills: up to 5 comma-separated specific skills or steps (e.g., "Python, SQL, portfolio projects").
-- Do not add greetings or extra text. Output must be pure JSON only.
 """
 
-    # OpenAI key check
-    openai_api_key = os.getenv("OPENAI_API_KEY")
-    if not openai_api_key:
-        return jsonify({"error": "OpenAI API key not configured on server."}), 500
+    # Choose a model you have access to; adjust if needed
+    model_name = "gemini-2.5-flash"
 
     try:
-        openai.api_key = openai_api_key
-        resp = openai.ChatCompletion.create(
-            model="gpt-4o-mini",     # change to model you have access to
-            messages=[
-                {"role": "system", "content": "You are a concise career advisor."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=280,
-            temperature=0.2,
-            n=1
+        # Call Gemini via the genai client (keeps call minimal)
+        response = client.models.generate_content(
+            model=model_name,
+            contents=[{"parts": [{"text": prompt}]}],
         )
-
-        raw = resp['choices'][0]['message']['content'].strip()
-
-        # Try parse JSON exactly; fallback to extracting JSON block
-        try:
-            parsed = json.loads(raw)
-        except Exception:
-            m = re.search(r'\{.*\}', raw, re.S)
-            if m:
-                parsed = json.loads(m.group(0))
-            else:
-                # fallback: return raw text as reason
-                parsed = {"role": "", "reason": raw, "recommended_skills": ""}
-
-        role = (parsed.get("role") or "").strip()
-        reason = (parsed.get("reason") or "").strip()
-        rec_skills = (parsed.get("recommended_skills") or "").strip()
-
-        # If role empty, try simple heuristic: take first line before newline
-        if not role and reason:
-            first_line = reason.splitlines()[0].strip()
-            role = first_line if len(first_line) < 60 else ""
-
-        return jsonify({"role": role, "reason": reason, "recommended_skills": rec_skills})
-    except openai.error.OpenAIError as e:
-        return jsonify({"error": "AI service error: " + str(e)}), 500
     except Exception as e:
-        return jsonify({"error": "Server error: " + str(e)}), 500
+        return jsonify({"error": f"AI service error (request failed): {str(e)}"}), 500
+
+    # --- Extract raw text robustly from many possible response shapes ---
+    raw_text = ""
+
+    # 1) direct .text attribute (some wrappers)
+    if hasattr(response, "text") and isinstance(response.text, str) and response.text.strip():
+        raw_text = response.text
+    else:
+        # 2) attempt to probe common nested keys safely
+        try:
+            # Convert to plain Python structure so we can search it
+            resp_obj = json.loads(json.dumps(response))
+        except Exception:
+            # If conversion fails, fallback to string representation
+            resp_obj = response
+
+        def find_first_string(obj):
+            """Recursively find first non-empty string in nested dict/list"""
+            if isinstance(obj, str):
+                return obj if obj.strip() else None
+            if isinstance(obj, dict):
+                # Prefer keys likely to contain text
+                for key in ("candidates", "output", "response", "content", "text", "message", "messages"):
+                    if key in obj:
+                        found = find_first_string(obj[key])
+                        if found:
+                            return found
+                # otherwise iterate
+                for v in obj.values():
+                    found = find_first_string(v)
+                    if found:
+                        return found
+            if isinstance(obj, list):
+                for item in obj:
+                    found = find_first_string(item)
+                    if found:
+                        return found
+            return None
+
+        found = find_first_string(resp_obj)
+        raw_text = found or ""
+
+    raw_text = (raw_text or "").strip()
+
+    # --- Try parsing JSON directly, then attempt extraction via regex ---
+    parsed = {}
+    if raw_text:
+        try:
+            parsed = json.loads(raw_text)
+        except Exception:
+            # extract first {...} block
+            m = re.search(r"\{(?:[^{}]|\n|\r|\s)*\}", raw_text)
+            if m:
+                try:
+                    parsed = json.loads(m.group(0))
+                except Exception:
+                    parsed = {}
+            else:
+                parsed = {}
+
+    # If parsing failed, but there is raw_text, use it as the reason fallback
+    if not parsed:
+        parsed = {"role": "", "reason": raw_text or "No usable response from model.", "recommended_skills": ""}
+
+    # Normalize outputs
+    role = (parsed.get("role") or "").strip()
+    reason = (parsed.get("reason") or "").strip()
+    recommended_skills = (parsed.get("recommended_skills") or "").strip()
+
+    # Fallback: if role is empty but reason seems to start with a job title, use first line
+    if not role and reason:
+        first_line = reason.splitlines()[0].strip()
+        # quick heuristic: if first line short, treat as role
+        if 1 <= len(first_line.split()) <= 6:
+            # If first_line contains punctuation, it's likely not a clean role; still safe to use
+            role = first_line
+
+    return jsonify({
+        "role": role,
+        "reason": reason,
+        "recommended_skills": recommended_skills
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)
