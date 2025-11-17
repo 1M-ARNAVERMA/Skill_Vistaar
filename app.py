@@ -4,6 +4,7 @@ import re
 import os
 import openai          
 from flask import Flask, render_template, request, jsonify
+import json
 
 from dotenv import load_dotenv
 load_dotenv()
