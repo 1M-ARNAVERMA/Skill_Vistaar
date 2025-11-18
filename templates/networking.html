@@ -3,8 +3,101 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Networking - Skill Vistaar</title>
+  <title>Networking Opportunities - Skill Vistaar</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
+  <style>
+    /* Networking page — self-contained visual polish, matching palette */
+    .network-container {
+      max-width: 1200px;
+      margin: 18px auto 60px;
+      padding: 0 18px;
+      box-sizing: border-box;
+    }
+
+    .section-card {
+      background: linear-gradient(180deg,#fff,#fbfdff);
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 12px 26px rgba(26,58,108,0.06);
+      border: 1px solid rgba(26,58,108,0.06);
+    }
+
+    .section-card h2 {
+      color: #16385a; /* deep blue similar to palette */
+      margin: 0 0 10px 0;
+      font-size: 1.38rem;
+      font-weight: 800;
+    }
+
+    .section-card p, .section-card li {
+      color: #294766;
+      line-height: 1.6;
+      font-size: 0.98rem;
+    }
+
+    /* Upcoming events layout */
+    .events-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 8px;
+    }
+    .event {
+      background: linear-gradient(180deg,#f8fcff,#ffffff);
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(26,58,108,0.04);
+      box-shadow: 0 6px 12px rgba(26,58,108,0.03);
+    }
+    .event .title { font-weight:700; color:#133a57; margin-bottom:6px; }
+    .event .meta { font-size:0.9rem; color:#1f4a6b; opacity:0.88; }
+
+    /* Dos & Don'ts improved list */
+    .network-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .dos, .donts {
+      background: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px dashed rgba(26,58,108,0.04);
+    }
+    .dos h3, .donts h3 { margin:0 0 6px; font-size:1.02rem; color:#16385a; }
+
+    /* Success stories */
+    .stories {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .story {
+      background: linear-gradient(180deg,#f3f8ff,#f7fbff);
+      padding: 14px;
+      border-left: 6px solid rgba(0,168,89,0.06);
+      border-radius: 8px;
+      color: #1f4a6b;
+      box-shadow: 0 6px 14px rgba(26,58,108,0.03);
+    }
+    .story .name { font-weight:800; color:#12324a; margin-bottom:6px; }
+    .story .role { font-size:0.95rem; color:#2b5173; margin-bottom:8px; }
+
+    /* Extra tips/footer hint */
+    .network-hint {
+      margin-top:10px;
+      font-size:0.95rem;
+      color:#294766;
+      opacity:0.95;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 720px) {
+      .network-list { grid-template-columns: 1fr; }
+      .events-list { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
   <header class="navbar">
@@ -19,65 +112,134 @@
     <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
     <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
     <a href="{{ url_for('networking') }}">Networking Opportunities</a>
-    <a href="{{ url_for('contact') }}">Contact Us</a>
   </nav>
 
-  <main class="page-container">
+  <main class="page-container" style="padding-bottom:40px;">
+    <div class="network-container">
 
-    <h1 class="page-title">Networking Opportunities</h1>
+      <h1 style="color:#16385a; margin-bottom:14px;">Networking Opportunities</h1>
 
-    <!-- Why Networking -->
-    <section class="network-card">
-      <h2>Why Networking Matters</h2>
-      <p>Networking opens doors to mentorship, referral-based opportunities, and real industry knowledge. It helps you build meaningful professional relationships that lead to long-term career growth.</p>
-    </section>
+      <!-- Why Networking Matters -->
+      <section class="section-card" aria-labelledby="why-networking">
+        <h2 id="why-networking">Why Networking Matters</h2>
+        <p>
+          Networking opens doors to mentorship, referral-based opportunities, and industry knowledge.
+          Good networking accelerates career growth by connecting you with hiring managers, mentors,
+          and project collaborators. A strong network helps you discover hidden job openings, receive
+          timely feedback, and gain real-world insights into company culture and expectations.
+        </p>
+        <p class="network-hint"><strong>Pro tip:</strong> Keep a short note after every conversation (topic, follow-up date,
+        and one action). This habit turns casual chats into useful, long-term connections.</p>
+      </section>
 
-    <!-- Events -->
-    <section class="network-card">
-      <h2>Upcoming Events</h2>
-      <ul>
-        <li>Virtual Tech Meetup — May 10, 2025</li>
-        <li>LinkedIn Career Connect — June 2, 2025</li>
-      </ul>
-    </section>
+      <!-- Upcoming Events -->
+      <section class="section-card" aria-labelledby="upcoming-events">
+        <h2 id="upcoming-events">Upcoming Events</h2>
 
-    <!-- Dos & Don'ts -->
-    <section class="network-card">
-      <h2>Networking Dos & Don’ts</h2>
-      <ul>
-        <li>Be specific when reaching out.</li>
-        <li>Follow up politely.</li>
-      </ul>
-    </section>
+        <div class="events-list">
+          <div class="event">
+            <div class="title">Virtual Tech Meetup</div>
+            <div class="meta">May 10, 2025 · Online · Host: Skill Vistaar</div>
+            <p style="margin-top:8px;">A panel with engineering leads on building production ML systems — includes breakout mentoring rooms and live Q&A.</p>
+            <p style="margin:6px 0 0;"><a href="#" style="color:#005b4a; font-weight:700;">Register</a></p>
+          </div>
 
-    <!-- Success Stories -->
-    <section class="network-card">
-      <h2>Success Stories</h2>
+          <div class="event">
+            <div class="title">LinkedIn Career Connect</div>
+            <div class="meta">June 2, 2025 · Hybrid · Host: Skill Vistaar & Partners</div>
+            <p style="margin-top:8px;">Networking focused on entry-to-mid level product & data roles. Resume review and mock interviews available.</p>
+            <p style="margin:6px 0 0;"><a href="#" style="color:#005b4a; font-weight:700;">Register</a></p>
+          </div>
 
-      <div class="success-entry">
-        <h3>Ayushi Sharma</h3>
-        <p>"Connected & placed in 2 weeks!"</p>
-      </div>
+          <div class="event">
+            <div class="title">Design Portfolio Clinic</div>
+            <div class="meta">June 20, 2025 · Online · Host: UX Club</div>
+            <p style="margin-top:8px;">Group portfolio reviews with senior designers — get actionable feedback on a single case study.</p>
+            <p style="margin:6px 0 0;"><a href="#" style="color:#005b4a; font-weight:700;">Join Waitlist</a></p>
+          </div>
+        </div>
 
-      <div class="success-entry">
-        <h3>Rohan Patel</h3>
-        <p>"Mentorship helped land a data role."</p>
-      </div>
+        <p class="network-hint" style="margin-top:12px;">Want us to recommend events for your role? Use the Mentorship or Career Guidance tab to get personalized event suggestions.</p>
+      </section>
 
-      <div class="success-entry">
-        <h3>Sneha Gupta</h3>
-        <p>"Webinar introduced me to peers."</p>
-      </div>
+      <!-- Networking Dos & Don'ts -->
+      <section class="section-card" aria-labelledby="dos-donts">
+        <h2 id="dos-donts">Networking Dos &amp; Don'ts</h2>
 
-      <div class="success-entry">
-        <h3>Aditya Verma</h3>
-        <p>"Casual chat led to internship."</p>
-      </div>
-    </section>
+        <div class="network-list" style="margin-top:12px;">
+          <div class="dos">
+            <h3>Do</h3>
+            <ul style="margin:8px 0 0 18px;">
+              <li>Be specific in your ask — e.g., "Can you review my one-page resume?"</li>
+              <li>Follow up within 48 hours with a short thank-you and next step.</li>
+              <li>Offer value: share relevant articles, intros, or feedback.</li>
+              <li>Keep your LinkedIn profile concise and current.</li>
+            </ul>
+          </div>
 
+          <div class="donts">
+            <h3>Don't</h3>
+            <ul style="margin:8px 0 0 18px;">
+              <li>Don't ask for a job on first contact — build rapport first.</li>
+              <li>Avoid mass, impersonal messages — personalize every outreach.</li>
+              <li>Don't forget to track conversations and promised follow-ups.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Success Stories -->
+      <section class="section-card" aria-labelledby="success-stories">
+        <h2 id="success-stories">Success Stories</h2>
+
+        <div class="stories">
+          <div class="story">
+            <div class="name">Ayushi Sharma</div>
+            <div class="role">Data Analyst · Placed at Fintech Co.</div>
+            <p>"I attended a Skill Vistaar event and connected with a hiring manager — received an interview invite within 2 weeks and got the role."</p>
+            <small style="color:#2b5173;">Tip from Ayushi: Follow up with a 60–90 second summary of your relevant project.</small>
+          </div>
+
+          <div class="story">
+            <div class="name">Rohan Patel</div>
+            <div class="role">Backend Engineer · Placed at HealthTech</div>
+            <p>"A mentor introduced me to a senior engineer who later referred me. Mentorship helped me land a data role with strong team fit."</p>
+            <small style="color:#2b5173;">Tip from Rohan: Volunteer for short project collaborations to demonstrate real work.</small>
+          </div>
+
+          <div class="story">
+            <div class="name">Sneha Gupta</div>
+            <div class="role">UX Designer · Freelance to Full-time</div>
+            <p>"After a portfolio clinic, I improved one case study and shared it with peers — that led to a full-time interview."</p>
+            <small style="color:#2b5173;">Tip from Sneha: Case studies that show measurable impact stand out.</small>
+          </div>
+
+          <div class="story">
+            <div class="name">Aditya Verma</div>
+            <div class="role">Internship · Product Team</div>
+            <p>"A casual coffee chat turned into an internship when I volunteered to help with a small analytics task."</p>
+            <small style="color:#2b5173;">Tip from Aditya: Bring a concrete 1-hour offer: "I can help with X for 2 hours."</small>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Quick tools / next steps -->
+      <section class="section-card" aria-labelledby="next-steps">
+        <h2 id="next-steps">Quick Tools & Next Steps</h2>
+        <ul style="margin:10px 0 0 18px;">
+          <li><strong>Prepare a 30-second intro:</strong> Who you are, what you do, and the one thing you want.</li>
+          <li><strong>Track contacts:</strong> Use a simple spreadsheet with columns: name, platform, topic, follow-up date.</li>
+          <li><strong>Follow-up templates:</strong> Keep two short templates — one for first follow-up, one for thank-you after help.</li>
+          <li><strong>Event etiquette:</strong> Arrive early, listen actively, and follow up with a short, specific ask.</li>
+        </ul>
+      </section>
+
+    </div><!-- .network-container -->
   </main>
 
   <footer class="footer-gradient"><p>© 2025 Skill Vistaar</p></footer>
+
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

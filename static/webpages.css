@@ -384,3 +384,17 @@ footer {
   .skillcard { padding: 16px; margin: 18px 12px; }
   .skill-title { font-size: 1.35rem; }
 }
+
+.btn-green {
+    background: #00A859;
+    color: #fff;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.2s ease-in-out;
+}
+.btn-green:hover {
+    background: #008F4D;
+}
