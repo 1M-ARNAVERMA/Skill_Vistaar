@@ -169,127 +169,276 @@ def recommend_career():
 
     return jsonify(response)
 
-@app.route('/analyze_skill_gap', methods=['POST'])
-def analyze_skill_gap():
-    data = request.get_json() or {}
+@app.route('/api/skill-gap', methods=['POST'])
+def analyze_skill_gap_api():
+    """
+    New skill-gap endpoint using Google Gemini (genai).
+    Expects JSON: { company, position, skills }
+    Returns JSON: { title, required, missing, recommendations, notes }
+    """
+    data = request.get_json(silent=True) or {}
     company = (data.get('company') or '').strip()
-    position = (data.get('position') or '').strip().lower()
-    skills_raw = (data.get('skills') or '').strip().lower()
+    position = (data.get('position') or '').strip()
+    skills_raw = (data.get('skills') or '').strip()
 
-    current_skills = [s.strip() for s in re.split(r',|\n|;', skills_raw) if s.strip()]
+    if not position or not skills_raw:
+        return jsonify({"error": "position and skills are required."}), 400
 
-    job_requirements = {
-        "software engineer": ["python", "data structures", "algorithms", "git", "unit testing", "linux", "cloud computing"],
-        "backend engineer": ["python", "apis", "databases", "sql", "docker", "git"],
-        "frontend developer": ["html", "css", "javascript", "react", "responsive design", "accessibility"],
-        "data scientist": ["python", "machine learning", "statistics", "sql", "pandas", "data visualization"],
-        "data analyst": ["sql", "excel", "data visualization", "python", "statistics"],
-        "ux designer": ["user research", "wireframing", "figma", "prototyping", "usability testing"],
-        "product manager": ["roadmapping", "stakeholder communication", "metrics", "prioritization"],
-        "devops": ["linux", "docker", "kubernetes", "ci/cd", "cloud"],
-    }
+    # Normalize user skills as short list (comma separated)
+    user_skills = [s.strip() for s in re.split(r',|\n|;', skills_raw) if s.strip()]
 
-    matched_key = None
-    for key in job_requirements.keys():
-        if key in position:
-            matched_key = key
-            break
-    if matched_key is None:
-        for key in job_requirements.keys():
-            first_word = key.split()[0]
-            if first_word in position:
-                matched_key = key
-                break
-    if matched_key is None:
-        required_skills = ["communication", "problem-solving", "teamwork"]
+    # Build prompt: ask for JSON output describing required skills, missing skills, recommendations
+    prompt = f"""
+You are an expert hiring/career advisor. A candidate provided:
+- Target company: {company or 'Not specified'}
+- Position: {position}
+- Current skills: {', '.join(user_skills)}
+
+Please analyze typical job requirements for this role (generalized, and include company-specific notes if company was specified).
+Return ONLY valid JSON with these keys:
+- title (string) e.g. "Skill gap analysis for Software Engineer"
+- required (array of strings) - the core required skills for the role
+- missing (array of strings) - which required skills the user does NOT currently have
+- recommendations (array of short strings) - prioritized practical next steps (3-6 items)
+- notes (string) - optional notes about company-specific expectations
+
+Be concise and practical.
+"""
+
+    # choose model name you have access to
+    model_name = "gemini-2.5-flash"  # change if necessary
+
+    try:
+        response = client.models.generate_content(
+            model=model_name,
+            contents=[{"parts": [{"text": prompt}]}],
+        )
+    except Exception as e:
+        return jsonify({"error": f"AI service error (request failed): {str(e)}"}), 500
+
+    # Extract text robustly (reuse the same robust extraction logic)
+    raw_text = ""
+    if hasattr(response, "text") and isinstance(response.text, str) and response.text.strip():
+        raw_text = response.text.strip()
     else:
-        required_skills = job_requirements[matched_key]
+        try:
+            resp_obj = json.loads(json.dumps(response))
+        except Exception:
+            resp_obj = response
 
-    normalized_current = [s.lower() for s in current_skills]
-    missing = [r for r in required_skills if not any(r in s or s in r for s in normalized_current)]
+        def find_first_string(obj):
+            if isinstance(obj, str):
+                return obj if obj.strip() else None
+            if isinstance(obj, dict):
+                for key in ("candidates", "output", "response", "content", "text", "message", "messages"):
+                    if key in obj:
+                        found = find_first_string(obj[key])
+                        if found:
+                            return found
+                for v in obj.values():
+                    found = find_first_string(v)
+                    if found:
+                        return found
+            if isinstance(obj, list):
+                for item in obj:
+                    found = find_first_string(item)
+                    if found:
+                        return found
+            return None
 
-    recommendations = []
-    if missing:
-        recommendations.append("Study and practice the missing skills listed above.")
-        recommendations.append("Build small projects that demonstrate those skills.")
-        recommendations.append("Add those keywords to your resume and LinkedIn profile.")
-        recommendations.append("Take hands-on courses or labs for the missing topics.")
-    else:
-        recommendations.append("Your current skills cover the core requirements. Strengthen via projects and interview practice.")
+        found = find_first_string(resp_obj)
+        raw_text = (found or "").strip()
 
-    notes = ""
-    if company:
-        notes = f"Hiring requirements at {company} may include extra topics (system design, domain tools). Check company job descriptions to refine this list."
+    # Parse JSON from raw_text
+    parsed = {}
+    if raw_text:
+        try:
+            parsed = json.loads(raw_text)
+        except Exception:
+            m = re.search(r"\{(?:[^{}]|\n|\r|\s)*\}", raw_text)
+            if m:
+                try:
+                    parsed = json.loads(m.group(0))
+                except Exception:
+                    parsed = {}
+            else:
+                parsed = {}
 
-    response = {
-        "title": f"Skill gap analysis for {position.title() if position else 'role'}",
-        "required": required_skills,
+    # If parsing failed, respond with fallback helpful message
+    if not parsed:
+        return jsonify({"error": "AI returned no parseable JSON. Raw response: " + (raw_text[:1000] or "empty")}), 500
+
+    # Normalize fields
+    title = parsed.get("title") or f"Skill gap analysis for {position}"
+    required = parsed.get("required") or []
+    missing = parsed.get("missing") or []
+    recommendations = parsed.get("recommendations") or parsed.get("recommendations", []) or []
+    notes = parsed.get("notes") or ""
+
+    # Ensure arrays are lists of strings
+    def ensure_list_of_strings(x):
+        if isinstance(x, list):
+            return [str(i) for i in x]
+        if isinstance(x, str):
+            # try splitting on newline or semicolon
+            return [s.strip() for s in re.split(r'\n|;|\.', x) if s.strip()]
+        return []
+
+    required = ensure_list_of_strings(required)
+    missing = ensure_list_of_strings(missing)
+    recommendations = ensure_list_of_strings(recommendations)
+
+    return jsonify({
+        "title": title,
+        "required": required,
         "missing": missing,
         "recommendations": recommendations,
         "notes": notes
-    }
-    return jsonify(response)
+    })
 
 @app.route('/predict_salary', methods=['POST'])
 def predict_salary():
-    data = request.get_json() or {}
-    job = (data.get('job') or '').strip().lower()
+    """
+    AI-only salary forecasting using Google Gemini (genai).
+    Always returns API-driven result or an error (no local fallback).
+    Output JSON shape (on success): { job, min, avg, max, missing_skills, note }
+    On failure returns: {"error": "<message>"} with status 500.
+    """
+    data = request.get_json(silent=True) or {}
+    job_input = (data.get('job') or '').strip()
     location = (data.get('location') or '').strip()
     experience = data.get('experience', 0)
-    skills_raw = (data.get('skills') or '').strip().lower()
-    current_skills = [s.strip() for s in re.split(r',|\n|;', skills_raw) if s.strip()]
+    skills_raw = (data.get('skills') or '').strip()
+    current_skills = [s.strip().lower() for s in re.split(r',|\n|;', skills_raw) if s.strip()]
 
-    salary_data = {
-        "software engineer": {"min": 400000, "avg": 800000, "max": 1500000, "boost": ["system design", "cloud computing", "data structures & algorithms", "unit testing"]},
-        "data scientist": {"min": 500000, "avg": 950000, "max": 1700000, "boost": ["machine learning", "deep learning", "sql", "statistics"]},
-        "web developer": {"min": 300000, "avg": 600000, "max": 1200000, "boost": ["react", "node.js", "rest apis", "javascript"]},
-        "frontend developer": {"min": 350000, "avg": 650000, "max": 1250000, "boost": ["react", "javascript", "css", "accessibility"]},
-        "backend engineer": {"min": 380000, "avg": 720000, "max": 1400000, "boost": ["apis", "databases", "docker", "sql"]},
-        "data analyst": {"min": 250000, "avg": 450000, "max": 900000, "boost": ["sql", "excel", "data visualization", "python"]},
-    }
+    # Build prompt (strict JSON requested)
+    prompt = f"""
+You are a careful, data-driven salary forecasting assistant. Given a job title, location, years of experience,
+and current skills, return a strict JSON object (no extra text) with these keys:
+- job: canonical job name (string)
+- min: estimated minimum salary in INR (integer)
+- avg: estimated average salary in INR (integer)
+- max: estimated maximum salary in INR (integer)
+- missing_skills: array of short strings (skills that would increase salary)
+- note: optional short note about location or assumptions
 
-    matched = None
-    for key in salary_data.keys():
-        if key in job:
-            matched = key
-            break
-    if matched is None:
-        for key in salary_data.keys():
-            if key.split()[0] in job:
-                matched = key
-                break
+User data:
+job_title: {job_input or 'Not specified'}
+location: {location or 'Not specified'}
+years_experience: {experience}
+current_skills: {', '.join(current_skills) or 'None'}
 
-    if matched is None:
-        matched = "software engineer"
+Return only valid JSON. Use reasonable, conservative estimates and prioritize practical skill recommendations.
+"""
 
-    entry = salary_data[matched]
-    boost_skills = entry.get("boost", [])
-    missing = [s for s in boost_skills if not any(s in cs or cs in s for cs in current_skills)]
+    model_name = "gemini-2.5-flash"  # change if your account requires a different model
 
-    # small adjustment by experience (very simple)
+    # Call Gemini API
     try:
-        exp = float(experience)
+        response = client.models.generate_content(
+            model=model_name,
+            contents=[{"parts": [{"text": prompt}]}],
+        )
+    except Exception as e:
+        # API request failed — return as error to frontend
+        err_msg = f"AI service request failed: {str(e)}"
+        return jsonify({"error": err_msg}), 500
+
+    # Robustly extract text
+    raw_text = ""
+    if hasattr(response, "text") and isinstance(response.text, str) and response.text.strip():
+        raw_text = response.text.strip()
+    else:
+        try:
+            resp_obj = json.loads(json.dumps(response))
+        except Exception:
+            resp_obj = response
+
+        def find_first_string(obj):
+            if isinstance(obj, str):
+                return obj if obj.strip() else None
+            if isinstance(obj, dict):
+                # try common nested keys first
+                for key in ("candidates", "output", "response", "content", "text", "message", "messages"):
+                    if key in obj:
+                        found = find_first_string(obj[key])
+                        if found:
+                            return found
+                for v in obj.values():
+                    found = find_first_string(v)
+                    if found:
+                        return found
+            if isinstance(obj, list):
+                for item in obj:
+                    found = find_first_string(item)
+                    if found:
+                        return found
+            return None
+
+        found = find_first_string(resp_obj)
+        raw_text = (found or "").strip()
+
+    if not raw_text:
+        return jsonify({"error": "AI returned an empty response."}), 500
+
+    # Parse JSON from the model output
+    parsed = {}
+    try:
+        parsed = json.loads(raw_text)
     except Exception:
-        exp = 0.0
-    multiplier = 1.0 + min(max(exp - 1.0, 0.0) * 0.06, 0.6)
+        m = re.search(r"\{(?:[^{}]|\n|\r|\s)*\}", raw_text)
+        if m:
+            try:
+                parsed = json.loads(m.group(0))
+            except Exception:
+                parsed = {}
+        else:
+            parsed = {}
 
-    min_salary = int(entry["min"] * multiplier)
-    avg_salary = int(entry["avg"] * multiplier)
-    max_salary = int(entry["max"] * multiplier)
+    # Validate parsed output contains numeric salary fields
+    if not isinstance(parsed, dict) or not all(k in parsed for k in ("min", "avg", "max")):
+        # return raw model text as error for debugging
+        return jsonify({"error": "AI returned unparseable JSON output.", "raw": raw_text[:200]}), 500
 
-    note = ""
-    if location:
-        note = f"Salaries vary by city. This is a rough estimate for {location}."
+    # Normalize numeric fields
+    def to_int(val):
+        try:
+            if isinstance(val, int):
+                return val
+            if isinstance(val, float):
+                return int(val)
+            s = str(val)
+            s = re.sub(r'[^\d.-]', '', s)
+            return int(float(s)) if s else 0
+        except Exception:
+            return 0
 
-    response = {
-        "job": matched,
+    job_out = parsed.get("job") or job_input or parsed.get("title") or "role"
+    min_salary = to_int(parsed.get("min"))
+    avg_salary = to_int(parsed.get("avg"))
+    max_salary = to_int(parsed.get("max"))
+
+    missing_skills = parsed.get("missing_skills") or parsed.get("missing") or []
+    if isinstance(missing_skills, str):
+        missing_skills = [s.strip() for s in re.split(r',|\n|;', missing_skills) if s.strip()]
+    else:
+        missing_skills = [str(x).strip() for x in missing_skills]
+
+    note = parsed.get("note") or parsed.get("notes") or ""
+    if location and note and location not in note:
+        note = note + f" This estimate is for {location}."
+
+    result = {
+        "job": job_out,
         "min": min_salary,
         "avg": avg_salary,
         "max": max_salary,
-        "missing_skills": missing,
+        "missing_skills": missing_skills,
         "note": note
     }
-    return jsonify(response)
+
+    return jsonify(result)
+
 
 @app.route('/contact')
 def contact():

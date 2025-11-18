@@ -1,201 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>Skill Gap Analysis</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
-    <style>
-        .skill-wrapper {
-            max-width: 1000px;
-            margin: 120px auto 60px;
-            padding: 28px;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-        }
-        .page-title {
-            font-size: 36px;
-            color: #16446f;
-            margin-bottom: 18px;
-            text-align: left;
-        }
-        .field-row {
-            display:flex;
-            gap:16px;
-            align-items:center;
-            margin:12px 0;
-            flex-wrap:wrap;
-        }
-        .field-row label {
-            min-width: 180px;
-            color: #0f3b5b;
-            font-weight:600;
-        }
-        .field-row input[type="text"],
-        .field-row textarea {
-            min-width: 380px;
-            padding:10px 12px;
-            border-radius:6px;
-            border:1px solid #ccc;
-            background:#fff;
-        }
-        textarea { min-height:80px; }
-        .btn {
-            padding: 12px 20px;
-            background: #00A859;
-            color: white;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 700;
-            margin-top: 12px;
-        }
-        .btn:disabled { opacity:0.6; cursor:not-allowed; }
-        #result {
-            margin-top:20px;
-            padding:18px;
-            background:#f7fbff;
-            border-left:6px solid #1A3A6C;
-            border-radius:8px;
-            display:none;
-        }
-        #result h3 { margin:0 0 10px; color:#16446f; }
-        @media (max-width:760px){
-            .field-row label { min-width:100%; }
-            .field-row input[type="text"], .field-row textarea { min-width:100%; }
-            .skill-wrapper { margin:100px 12px; padding:18px; }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Skill Gap Analysis - Skill Vistaar</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='webpages.css') }}">
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <span class="menu-icon" onclick="openSidebar()">&#9776;</span>
-            <a href="{{ url_for('home') }}" class="logo">SKILL VISTAAR</a>
-        </nav>
-    </header>
+  <header class="navbar">
+    <button class="menu-icon" onclick="openSidebar()">☰</button>
+    <a class="logo" href="{{ url_for('home') }}">SKILL VISTAAR</a>
+  </header>
 
-    <div id="sidebar" class="sidebar" aria-hidden="true">
-        <a href="javascript:void(0)" class="close-btn" onclick="closeSidebar()">⮿</a>
-        <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
-        <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
-        <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
-        <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
-        <a href="{{ url_for('networking') }}">Networking Opportunities</a>
-        <a href="{{ url_for('home') }}">Home</a>
+  <nav id="sidebar" class="sidebar">
+    <button class="close-btn" onclick="closeSidebar()">✕</button>
+    <a href="{{ url_for('career_guidance') }}">Personalized Career Guidance</a>
+    <a href="{{ url_for('skill_gap') }}">Skill Gap Analysis</a>
+    <a href="{{ url_for('salary_forecasting') }}">Salary Forecasting</a>
+    <a href="{{ url_for('mentorship') }}">Mentorship Program</a>
+    <a href="{{ url_for('networking') }}">Networking Opportunities</a>
+    <a href="{{ url_for('contact') }}">Contact Us</a>
+  </nav>
+
+  <main class="page-container" style="padding-bottom:40px;">
+    <div class="network-card skillcard" style="max-width:1000px; margin:30px auto 22px auto;">
+
+      <!-- Title inside the container -->
+      <div class="skillcard-header">
+        <h1 class="skill-title">Skill Gap Analysis</h1>
+        <p class="skill-sub">Enter your target company (optional), the role you want, and your current skills (comma separated). The AI will analyze required skills, list missing skills, and give prioritized recommendations.</p>
+      </div>
+
+      <form id="skill-form" autocomplete="off" class="skill-form">
+        <div class="form-grid" style="grid-template-columns: 1fr; gap: 14px;">
+
+          <div class="field">
+            <label for="company">Target Company (optional)</label>
+            <input id="company" name="company" type="text" placeholder="e.g. Google" />
+            <div class="error" data-for="company"></div>
+          </div>
+
+          <div class="field">
+            <label for="position">Position / Role</label>
+            <input id="position" name="position" type="text" placeholder="e.g. Software Engineer" required />
+            <div class="error" data-for="position"></div>
+          </div>
+
+          <div class="field">
+            <label for="skills">Your Current Skills (comma separated)</label>
+            <textarea id="skills" name="skills" rows="4" placeholder="e.g. Python, Git, SQL" required></textarea>
+            <div class="error" data-for="skills"></div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px; display:flex; gap:12px;">
+          <button type="submit" class="btn primary-btn">Analyze</button>
+          <button type="button" id="resetBtn" class="btn secondary-btn">Reset</button>
+        </div>
+      </form>
     </div>
 
-    <main class="skill-wrapper" role="main">
-        <div class="page-title">Skill Gap Analysis</div>
+    <!-- Result card -->
+    <div id="result" class="network-card" style="max-width:1000px; margin:10px auto; display:none;">
+      <h2 id="result-title">Skill gap analysis</h2>
 
-        <form id="gapForm" autocomplete="off">
-            <div class="field-row">
-                <label for="company">Target Company (optional)</label>
-                <input id="company" name="company" type="text" placeholder="e.g. Google">
-            </div>
+      <div id="required" style="margin:10px 0;"></div>
 
-            <div class="field-row">
-                <label for="position">Position / Role</label>
-                <input id="position" name="position" type="text" placeholder="e.g. Software Engineer" required>
-            </div>
+      <div id="missing" style="margin:10px 0;"></div>
 
-            <div class="field-row">
-                <label for="skills">Your Current Skills (comma separated)</label>
-                <textarea id="skills" name="skills" placeholder="e.g. python, git, sql" required></textarea>
-            </div>
+      <div id="recommendations" style="margin:10px 0;"></div>
 
-            <div>
-                <button type="submit" id="analyzeBtn" class="btn">Analyze</button>
-                <button type="button" id="resetBtn" class="btn" style="background:#e6e6e6;color:#16446f;margin-left:12px">Reset</button>
-            </div>
-        </form>
+      <div id="notes" style="margin-top:10px; color:#294766;"></div>
+    </div>
 
-        <div id="result" aria-live="polite">
-            <h3 id="result-title"></h3>
-            <div id="result-body"></div>
-        </div>
-    </main>
+  </main>
 
-    <footer>
-        <div class="footer-gradient"></div>
-        <p style="text-align:center; padding:18px 0; margin:0">© 2025 Skill Vistaar</p>
-    </footer>
+  <footer class="footer-gradient"><p>© 2025 Skill Vistaar</p></footer>
 
-    <script>
-        function openSidebar() {
-            document.getElementById("sidebar").style.width = "260px";
-            document.body.style.overflow = "hidden";
-            document.getElementById("sidebar").setAttribute("aria-hidden","false");
+<script>
+  const form = document.getElementById('skill-form');
+  const resetBtn = document.getElementById('resetBtn');
+  const resultCard = document.getElementById('result');
+  const requiredEl = document.getElementById('required');
+  const missingEl = document.getElementById('missing');
+  const recEl = document.getElementById('recommendations');
+  const notesEl = document.getElementById('notes');
+  const titleEl = document.getElementById('result-title');
+
+  function showError(field, msg) {
+    const el = document.querySelector('.error[data-for="'+field+'"]');
+    if (el) el.textContent = msg;
+  }
+  function clearErrors() {
+    document.querySelectorAll('.error').forEach(e=>e.textContent='');
+  }
+
+  resetBtn.addEventListener('click', () => {
+    form.reset();
+    clearErrors();
+    resultCard.style.display = 'none';
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+    const company = document.getElementById('company').value.trim();
+    const position = document.getElementById('position').value.trim();
+    const skills = document.getElementById('skills').value.trim();
+
+    if (!position) {
+      showError('position', 'Please enter a role.');
+      return;
+    }
+    if (!skills) {
+      showError('skills', 'Please list your current skills.');
+      return;
+    }
+
+    // show loading
+    titleEl.textContent = 'Analyzing...';
+    requiredEl.innerHTML = '';
+    missingEl.innerHTML = '';
+    recEl.innerHTML = '';
+    notesEl.innerHTML = '';
+    resultCard.style.display = 'block';
+
+    const payload = { company, position, skills };
+    try {
+      const res = await fetch('{{ url_for("analyze_skill_gap_api") }}', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(t || 'Server error');
+      }
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+
+      titleEl.textContent = json.title || `Skill gap analysis for ${position}`;
+
+      // Required (list)
+      if (json.required && Array.isArray(json.required)) {
+        requiredEl.innerHTML = '<strong>Required skills:</strong><ul>' +
+          json.required.map(s => `<li>${s}</li>`).join('') + '</ul>';
+      }
+
+      // Missing (list)
+      if (json.missing && Array.isArray(json.missing)) {
+        missingEl.innerHTML = '<strong>Missing skills:</strong><ul>' +
+          json.missing.map(s => `<li>${s}</li>`).join('') + '</ul>';
+      }
+
+      // Recommendations (list or text)
+      if (json.recommendations) {
+        if (Array.isArray(json.recommendations)) {
+          recEl.innerHTML = '<strong>Recommendations:</strong><ol>' +
+            json.recommendations.map(r => `<li>${r}</li>`).join('') + '</ol>';
+        } else {
+          recEl.innerHTML = '<strong>Recommendations:</strong><p>' + json.recommendations + '</p>';
         }
-        function closeSidebar() {
-            document.getElementById("sidebar").style.width = "0";
-            document.body.style.overflow = "";
-            document.getElementById("sidebar").setAttribute("aria-hidden","true");
-        }
+      }
 
-        const form = document.getElementById('gapForm');
-        const resultDiv = document.getElementById('result');
-        const resultTitle = document.getElementById('result-title');
-        const resultBody = document.getElementById('result-body');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const resetBtn = document.getElementById('resetBtn');
+      if (json.notes) {
+        notesEl.textContent = json.notes;
+      }
 
-        resetBtn.addEventListener('click', () => {
-            form.reset();
-            resultDiv.style.display = 'none';
-            resultTitle.textContent = '';
-            resultBody.innerHTML = '';
-        });
+      window.scrollTo({top: resultCard.offsetTop - 40, behavior: 'smooth'});
+    } catch (err) {
+      titleEl.textContent = 'Error';
+      recEl.innerHTML = `<p style="color:#b82b2b">${err.message}</p>`;
+    }
+  });
+</script>
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            analyzeBtn.disabled = true;
-            analyzeBtn.textContent = 'Analyzing...';
-            resultDiv.style.display = 'none';
-            resultTitle.textContent = '';
-            resultBody.innerHTML = '';
-
-            const payload = {
-                company: document.getElementById('company').value.trim(),
-                position: document.getElementById('position').value.trim(),
-                skills: document.getElementById('skills').value.trim()
-            };
-
-            try {
-                const resp = await fetch('/analyze_skill_gap', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!resp.ok) throw new Error('Network response not OK');
-                const data = await resp.json();
-
-                resultTitle.textContent = data.title || `Suggested skills for ${payload.position}`;
-                let html = '';
-                if (data.missing && data.missing.length) {
-                    html += `<p><strong>Missing skills:</strong></p><ul>${data.missing.map(s => `<li>${s}</li>`).join('')}</ul>`;
-                } else {
-                    html += `<p><strong>No major skill gaps detected for the provided role.</strong></p>`;
-                }
-                if (data.recommendations && data.recommendations.length) {
-                    html += `<p><strong>Recommendations:</strong></p><ol>${data.recommendations.map(r => `<li>${r}</li>`).join('')}</ol>`;
-                }
-                if (data.notes) {
-                    html += `<p style="margin-top:8px;color:#444">${data.notes}</p>`;
-                }
-
-                resultBody.innerHTML = html;
-                resultDiv.style.display = 'block';
-            } catch (err) {
-                resultTitle.textContent = 'Error';
-                resultBody.innerHTML = `<p>Could not analyze skill gap. Try again later.</p>`;
-                resultDiv.style.display = 'block';
-                console.error(err);
-            } finally {
-                analyzeBtn.disabled = false;
-                analyzeBtn.textContent = 'Analyze';
-            }
-        });
-    </script>
 </body>
 </html>

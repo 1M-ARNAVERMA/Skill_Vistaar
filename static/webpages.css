@@ -307,3 +307,80 @@ footer {
   .form-grid { grid-template-columns: 1fr; }
   .network-card { padding: 18px; }
 }
+
+/* Skill gap card look & buttons */
+.skillcard {
+  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  border-radius: 14px;
+  padding: 22px 26px;
+  box-shadow: 0 10px 30px rgba(26,58,108,0.08);
+  border: 1px solid rgba(26,58,108,0.06);
+}
+
+/* header inside the card */
+.skillcard-header {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(26,58,108,0.06);
+}
+
+.skill-title {
+  font-size: 1.6rem;
+  margin: 2px 0 6px 0;
+  color: #16385a;
+}
+
+.skill-sub {
+  margin: 0;
+  color: #294766;
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+/* input styles (consistent, subtle) */
+.skillcard input[type="text"],
+.skillcard textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(26,58,108,0.12);
+  box-sizing: border-box;
+  font-size: 0.97rem;
+  color: #12324a;
+  background: #fff;
+}
+
+/* buttons */
+.btn.primary-btn {
+  background: linear-gradient(180deg, #00A859, #008f48);
+  color: white;
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  box-shadow: 0 6px 16px rgba(0,168,89,0.18);
+  cursor: pointer;
+}
+
+.btn.primary-btn:hover { transform: translateY(-2px); }
+
+.btn.secondary-btn {
+  background: white;
+  color: #16385a;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(26,58,108,0.12);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn.secondary-btn:hover {
+  background: #f5f7fb;
+  transform: translateY(-1px);
+}
+
+/* responsive tweak */
+@media (max-width: 780px) {
+  .skillcard { padding: 16px; margin: 18px 12px; }
+  .skill-title { font-size: 1.35rem; }
+}
