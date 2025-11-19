@@ -4,19 +4,148 @@ import re
 import os
 from flask import Flask, render_template, request, jsonify
 import json
-from google import genai
+import logging
+import requests
 
 from dotenv import load_dotenv
 load_dotenv(dotenv_path='.env')
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-GENIE_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GENIE_API_KEY:
-    print("Warning: GEMINI_API_KEY not set")
+# logging for debugging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("skillvistaar")
 
-# configure the genai client to use an API key
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+# Prefer OpenRouter key, fall back to other names if you kept them
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY") or os.getenv("GEMINI_API_KEY")
+if not OPENROUTER_API_KEY:
+    logger.warning("OPENROUTER_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY not set")
+
+# base URL for OpenRouter
+OPENROUTER_URL = "https://openrouter.ai/api/v1"
+
+# global to hold last raw response for debugging (masked/truncated)
+_last_raw_response_preview = None
+
+def _mask_secret(s: str):
+    if not s:
+        return ""
+    s = str(s)
+    if len(s) <= 10:
+        return s[:2] + "..." + s[-2:]
+    return s[:6] + "..." + s[-4:]
+
+def call_openrouter_chat(prompt, model="gpt-4o-mini", max_tokens=800, temperature=0.2):
+    """
+    Call OpenRouter chat completions via REST using requests.
+    Returns parsed JSON body (dict) or raises an Exception on HTTP error.
+    """
+    key = OPENROUTER_API_KEY
+    if not key:
+        raise RuntimeError("OpenRouter API key not configured on server.")
+    url = f"{OPENROUTER_URL}/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": "You are an assistant that returns JSON when asked."},
+            {"role": "user", "content": prompt}
+        ],
+        "max_tokens": max_tokens,
+        "temperature": temperature
+    }
+    try:
+        r = requests.post(url, headers=headers, json=payload, timeout=30)
+    except Exception as e:
+        raise RuntimeError(f"Request to OpenRouter failed: {e}")
+    if r.status_code != 200:
+        # include status and truncated body for debugging
+        body = r.text[:1000]
+        raise RuntimeError(f"OpenRouter HTTP {r.status_code} error: {body}")
+    try:
+        return r.json()
+    except Exception:
+        # return raw text wrapped if not JSON
+        return {"raw_text": r.text}
+
+def extract_text_from_response(resp):
+    """
+    Robustly extract a text block from many possible response shapes (dict/list/str).
+    Returns a string (possibly empty) and sets _last_raw_response_preview global.
+    """
+    global _last_raw_response_preview
+    try:
+        # Try to convert to simple python structure
+        try:
+            resp_obj = json.loads(json.dumps(resp))
+        except Exception:
+            resp_obj = resp
+
+        def find_first_string(obj):
+            if isinstance(obj, str):
+                return obj if obj.strip() else None
+            if isinstance(obj, dict):
+                # common keys for OpenRouter / OpenAI-like shapes
+                # check for 'choices' shape first
+                if "choices" in obj and isinstance(obj["choices"], list) and obj["choices"]:
+                    # Try choices[0].message.content
+                    c0 = obj["choices"][0]
+                    if isinstance(c0, dict):
+                        # new Chat Completions style: message -> content
+                        if "message" in c0 and isinstance(c0["message"], dict):
+                            if "content" in c0["message"]:
+                                # content might be a dict with 'parts' or 'text'
+                                return find_first_string(c0["message"]["content"])
+                        # older shape: text directly on choice
+                        if "text" in c0:
+                            return c0["text"]
+                        # sometimes choices[0].delta or other nested
+                    # fallback search inside choices list
+                    for item in obj["choices"]:
+                        found = find_first_string(item)
+                        if found:
+                            return found
+                # candidates / output (Google style)
+                for key in ("output", "candidates", "response", "content", "text", "message", "messages", "result", "raw_text"):
+                    if key in obj:
+                        found = find_first_string(obj[key])
+                        if found:
+                            return found
+                # fallback iterate values
+                for v in obj.values():
+                    found = find_first_string(v)
+                    if found:
+                        return found
+            if isinstance(obj, list):
+                for item in obj:
+                    found = find_first_string(item)
+                    if found:
+                        return found
+            return None
+
+        found = find_first_string(resp_obj)
+        raw_text = (found or "")
+        # store masked preview for debugging
+        _last_raw_response_preview = (raw_text[:1000] if isinstance(raw_text, str) else str(raw_text))[:1000]
+        return (raw_text or "").strip()
+    except Exception as e:
+        logger.exception("Failed to extract text from response: %s", e)
+        _last_raw_response_preview = str(resp)[:1000]
+        return ""
+
+@app.route('/_debug_key')
+def _debug_key():
+    # temporary debug endpoint: shows masked key presence (safe)
+    k = OPENROUTER_API_KEY or ""
+    return jsonify({"key_masked": _mask_secret(k)})
+
+@app.route('/_debug_last_resp')
+def _debug_last_resp():
+    # show the last raw response preview for debugging (do not return secrets)
+    return jsonify({"last_raw_preview": _last_raw_response_preview or "none"})
 
 @app.route('/')
 def home():
@@ -172,7 +301,7 @@ def recommend_career():
 @app.route('/api/skill-gap', methods=['POST'])
 def analyze_skill_gap_api():
     """
-    New skill-gap endpoint using Google Gemini (genai).
+    New skill-gap endpoint using OpenRouter (via OpenAI-compatible REST).
     Expects JSON: { company, position, skills }
     Returns JSON: { title, required, missing, recommendations, notes }
     """
@@ -206,48 +335,18 @@ Be concise and practical.
 """
 
     # choose model name you have access to
-    model_name = "gemini-2.5-flash"  # change if necessary
+    # OpenRouter often expects provider-prefixed names like "openai/gpt-4o-mini"
+    model_name = "openai/gpt-4o-mini"  # try "gpt-4o-mini" if this fails
 
     try:
-        response = client.models.generate_content(
-            model=model_name,
-            contents=[{"parts": [{"text": prompt}]}],
-        )
+        response = call_openrouter_chat(prompt, model=model_name, max_tokens=800, temperature=0.2)
     except Exception as e:
+        logger.exception("API request failed")
         return jsonify({"error": f"AI service error (request failed): {str(e)}"}), 500
 
     # Extract text robustly (reuse the same robust extraction logic)
-    raw_text = ""
-    if hasattr(response, "text") and isinstance(response.text, str) and response.text.strip():
-        raw_text = response.text.strip()
-    else:
-        try:
-            resp_obj = json.loads(json.dumps(response))
-        except Exception:
-            resp_obj = response
-
-        def find_first_string(obj):
-            if isinstance(obj, str):
-                return obj if obj.strip() else None
-            if isinstance(obj, dict):
-                for key in ("candidates", "output", "response", "content", "text", "message", "messages"):
-                    if key in obj:
-                        found = find_first_string(obj[key])
-                        if found:
-                            return found
-                for v in obj.values():
-                    found = find_first_string(v)
-                    if found:
-                        return found
-            if isinstance(obj, list):
-                for item in obj:
-                    found = find_first_string(item)
-                    if found:
-                        return found
-            return None
-
-        found = find_first_string(resp_obj)
-        raw_text = (found or "").strip()
+    raw_text = extract_text_from_response(response)
+    logger.info("Skill-gap raw_text preview: %s", (raw_text[:400] or "EMPTY"))
 
     # Parse JSON from raw_text
     parsed = {}
@@ -264,9 +363,10 @@ Be concise and practical.
             else:
                 parsed = {}
 
-    # If parsing failed, respond with fallback helpful message
+    # If parsing failed, respond with fallback helpful message (include raw preview)
     if not parsed:
-        return jsonify({"error": "AI returned no parseable JSON. Raw response: " + (raw_text[:1000] or "empty")}), 500
+        logger.warning("Skill-gap: no parseable JSON from model. raw preview: %s", _last_raw_response_preview)
+        return jsonify({"error": "AI returned no parseable JSON. Raw response: " + (_last_raw_response_preview or "empty")}), 500
 
     # Normalize fields
     title = parsed.get("title") or f"Skill gap analysis for {position}"
@@ -299,7 +399,7 @@ Be concise and practical.
 @app.route('/predict_salary', methods=['POST'])
 def predict_salary():
     """
-    AI-only salary forecasting using Google Gemini (genai).
+    AI-only salary forecasting using OpenRouter (via OpenAI-compatible REST).
     Always returns API-driven result or an error (no local fallback).
     Output JSON shape (on success): { job, min, avg, max, missing_skills, note }
     On failure returns: {"error": "<message>"} with status 500.
@@ -331,52 +431,19 @@ current_skills: {', '.join(current_skills) or 'None'}
 Return only valid JSON. Use reasonable, conservative estimates and prioritize practical skill recommendations.
 """
 
-    model_name = "gemini-2.5-flash"  # change if your account requires a different model
+    model_name = "openai/gpt-4o-mini"  # try "gpt-4o-mini" if provider-prefixed name fails
 
-    # Call Gemini API
+    # Call OpenAI-compatible Chat Completions (routed through OpenRouter)
     try:
-        response = client.models.generate_content(
-            model=model_name,
-            contents=[{"parts": [{"text": prompt}]}],
-        )
+        response = call_openrouter_chat(prompt, model=model_name, max_tokens=800, temperature=0.2)
     except Exception as e:
-        # API request failed — return as error to frontend
+        logger.exception("Salary API request failed")
         err_msg = f"AI service request failed: {str(e)}"
         return jsonify({"error": err_msg}), 500
 
     # Robustly extract text
-    raw_text = ""
-    if hasattr(response, "text") and isinstance(response.text, str) and response.text.strip():
-        raw_text = response.text.strip()
-    else:
-        try:
-            resp_obj = json.loads(json.dumps(response))
-        except Exception:
-            resp_obj = response
-
-        def find_first_string(obj):
-            if isinstance(obj, str):
-                return obj if obj.strip() else None
-            if isinstance(obj, dict):
-                # try common nested keys first
-                for key in ("candidates", "output", "response", "content", "text", "message", "messages"):
-                    if key in obj:
-                        found = find_first_string(obj[key])
-                        if found:
-                            return found
-                for v in obj.values():
-                    found = find_first_string(v)
-                    if found:
-                        return found
-            if isinstance(obj, list):
-                for item in obj:
-                    found = find_first_string(item)
-                    if found:
-                        return found
-            return None
-
-        found = find_first_string(resp_obj)
-        raw_text = (found or "").strip()
+    raw_text = extract_text_from_response(response)
+    logger.info("Salary raw_text preview: %s", (raw_text[:400] or "EMPTY"))
 
     if not raw_text:
         return jsonify({"error": "AI returned an empty response."}), 500
@@ -397,8 +464,8 @@ Return only valid JSON. Use reasonable, conservative estimates and prioritize pr
 
     # Validate parsed output contains numeric salary fields
     if not isinstance(parsed, dict) or not all(k in parsed for k in ("min", "avg", "max")):
-        # return raw model text as error for debugging
-        return jsonify({"error": "AI returned unparseable JSON output.", "raw": raw_text[:200]}), 500
+        logger.warning("Salary: unparseable JSON. raw preview: %s", _last_raw_response_preview)
+        return jsonify({"error": "AI returned unparseable JSON output.", "raw": _last_raw_response_preview[:200]}), 500
 
     # Normalize numeric fields
     def to_int(val):
@@ -447,7 +514,7 @@ def contact():
 @app.route('/api/career-recommend', methods=['POST'])
 def career_recommend_api():
     """
-    Robust, cleaned-up career recommendation endpoint for Google Gemini (genai).
+    Robust, cleaned-up career recommendation endpoint using OpenRouter (via REST).
     Expects JSON: { "answers": { "q1":"...", ..., "q10":"..." } }
     Returns JSON: { "role": ..., "reason": ..., "recommended_skills": ... }
     """
@@ -483,59 +550,17 @@ User answers:
 """
 
     # Choose a model you have access to; adjust if needed
-    model_name = "gemini-2.5-flash"
+    model_name = "openai/gpt-4o-mini"
 
     try:
-        # Call Gemini via the genai client (keeps call minimal)
-        response = client.models.generate_content(
-            model=model_name,
-            contents=[{"parts": [{"text": prompt}]}],
-        )
+        response = call_openrouter_chat(prompt, model=model_name, max_tokens=500, temperature=0.2)
     except Exception as e:
+        logger.exception("Career recommend API request failed")
         return jsonify({"error": f"AI service error (request failed): {str(e)}"}), 500
 
     # --- Extract raw text robustly from many possible response shapes ---
-    raw_text = ""
-
-    # 1) direct .text attribute (some wrappers)
-    if hasattr(response, "text") and isinstance(response.text, str) and response.text.strip():
-        raw_text = response.text
-    else:
-        # 2) attempt to probe common nested keys safely
-        try:
-            # Convert to plain Python structure so we can search it
-            resp_obj = json.loads(json.dumps(response))
-        except Exception:
-            # If conversion fails, fallback to string representation
-            resp_obj = response
-
-        def find_first_string(obj):
-            """Recursively find first non-empty string in nested dict/list"""
-            if isinstance(obj, str):
-                return obj if obj.strip() else None
-            if isinstance(obj, dict):
-                # Prefer keys likely to contain text
-                for key in ("candidates", "output", "response", "content", "text", "message", "messages"):
-                    if key in obj:
-                        found = find_first_string(obj[key])
-                        if found:
-                            return found
-                # otherwise iterate
-                for v in obj.values():
-                    found = find_first_string(v)
-                    if found:
-                        return found
-            if isinstance(obj, list):
-                for item in obj:
-                    found = find_first_string(item)
-                    if found:
-                        return found
-            return None
-
-        found = find_first_string(resp_obj)
-        raw_text = found or ""
-
-    raw_text = (raw_text or "").strip()
+    raw_text = extract_text_from_response(response)
+    logger.info("Career raw_text preview: %s", (raw_text[:400] or "EMPTY"))
 
     # --- Try parsing JSON directly, then attempt extraction via regex ---
     parsed = {}
@@ -555,6 +580,7 @@ User answers:
 
     # If parsing failed, but there is raw_text, use it as the reason fallback
     if not parsed:
+        logger.warning("Career recommend: no parseable JSON. raw preview: %s", _last_raw_response_preview)
         parsed = {"role": "", "reason": raw_text or "No usable response from model.", "recommended_skills": ""}
 
     # Normalize outputs
