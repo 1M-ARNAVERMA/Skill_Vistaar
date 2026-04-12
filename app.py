@@ -12,19 +12,15 @@ load_dotenv(dotenv_path='.env')
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-# logging for debugging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("skillvistaar")
 
-# Prefer OpenRouter key, fall back to other names if you kept them
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY") or os.getenv("GEMINI_API_KEY")
 if not OPENROUTER_API_KEY:
     logger.warning("OPENROUTER_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY not set")
 
-# base URL for OpenRouter
 OPENROUTER_URL = "https://openrouter.ai/api/v1"
 
-# global to hold last raw response for debugging (masked/truncated)
 _last_raw_response_preview = None
 
 def _mask_secret(s: str):
@@ -36,10 +32,7 @@ def _mask_secret(s: str):
     return s[:6] + "..." + s[-4:]
 
 def call_openrouter_chat(prompt, model="gpt-4o-mini", max_tokens=800, temperature=0.2):
-    """
-    Call OpenRouter chat completions via REST using requests.
-    Returns parsed JSON body (dict) or raises an Exception on HTTP error.
-    """
+
     key = OPENROUTER_API_KEY
     if not key:
         raise RuntimeError("OpenRouter API key not configured on server.")
@@ -72,13 +65,9 @@ def call_openrouter_chat(prompt, model="gpt-4o-mini", max_tokens=800, temperatur
         return {"raw_text": r.text}
 
 def extract_text_from_response(resp):
-    """
-    Robustly extract a text block from many possible response shapes (dict/list/str).
-    Returns a string (possibly empty) and sets _last_raw_response_preview global.
-    """
+    
     global _last_raw_response_preview
     try:
-        # Try to convert to simple python structure
         try:
             resp_obj = json.loads(json.dumps(resp))
         except Exception:
@@ -88,22 +77,14 @@ def extract_text_from_response(resp):
             if isinstance(obj, str):
                 return obj if obj.strip() else None
             if isinstance(obj, dict):
-                # common keys for OpenRouter / OpenAI-like shapes
-                # check for 'choices' shape first
                 if "choices" in obj and isinstance(obj["choices"], list) and obj["choices"]:
-                    # Try choices[0].message.content
                     c0 = obj["choices"][0]
                     if isinstance(c0, dict):
-                        # new Chat Completions style: message -> content
                         if "message" in c0 and isinstance(c0["message"], dict):
                             if "content" in c0["message"]:
-                                # content might be a dict with 'parts' or 'text'
                                 return find_first_string(c0["message"]["content"])
-                        # older shape: text directly on choice
                         if "text" in c0:
                             return c0["text"]
-                        # sometimes choices[0].delta or other nested
-                    # fallback search inside choices list
                     for item in obj["choices"]:
                         found = find_first_string(item)
                         if found:
@@ -300,23 +281,17 @@ def recommend_career():
 
 @app.route('/api/skill-gap', methods=['POST'])
 def analyze_skill_gap_api():
-    """
-    New skill-gap endpoint using OpenRouter (via OpenAI-compatible REST).
-    Expects JSON: { company, position, skills }
-    Returns JSON: { title, required, missing, recommendations, notes }
-    """
+    
     data = request.get_json(silent=True) or {}
     company = (data.get('company') or '').strip()
     position = (data.get('position') or '').strip()
     skills_raw = (data.get('skills') or '').strip()
 
     if not position or not skills_raw:
-        return jsonify({"error": "position and skills are required."}), 400
+        return jsonify({"error": "position and skills are required."}), 400  # jsonify converts python dictionaries into json format
 
-    # Normalize user skills as short list (comma separated)
     user_skills = [s.strip() for s in re.split(r',|\n|;', skills_raw) if s.strip()]
 
-    # Build prompt: ask for JSON output describing required skills, missing skills, recommendations
     prompt = f"""
 You are an expert hiring/career advisor. A candidate provided:
 - Target company: {company or 'Not specified'}
@@ -334,9 +309,7 @@ Return ONLY valid JSON with these keys:
 Be concise and practical.
 """
 
-    # choose model name you have access to
-    # OpenRouter often expects provider-prefixed names like "openai/gpt-4o-mini"
-    model_name = "openai/gpt-4o-mini"  # try "gpt-4o-mini" if this fails
+    model_name = "openai/gpt-4o-mini" 
 
     try:
         response = call_openrouter_chat(prompt, model=model_name, max_tokens=800, temperature=0.2)
@@ -398,12 +371,7 @@ Be concise and practical.
 
 @app.route('/predict_salary', methods=['POST'])
 def predict_salary():
-    """
-    AI-only salary forecasting using OpenRouter (via OpenAI-compatible REST).
-    Always returns API-driven result or an error (no local fallback).
-    Output JSON shape (on success): { job, min, avg, max, missing_skills, note }
-    On failure returns: {"error": "<message>"} with status 500.
-    """
+    
     data = request.get_json(silent=True) or {}
     job_input = (data.get('job') or '').strip()
     location = (data.get('location') or '').strip()
@@ -411,7 +379,6 @@ def predict_salary():
     skills_raw = (data.get('skills') or '').strip()
     current_skills = [s.strip().lower() for s in re.split(r',|\n|;', skills_raw) if s.strip()]
 
-    # Build prompt (strict JSON requested)
     prompt = f"""
 You are a careful, data-driven salary forecasting assistant. Given a job title, location, years of experience,
 and current skills, return a strict JSON object (no extra text) with these keys:
@@ -431,9 +398,8 @@ current_skills: {', '.join(current_skills) or 'None'}
 Return only valid JSON. Use reasonable, conservative estimates and prioritize practical skill recommendations.
 """
 
-    model_name = "openai/gpt-4o-mini"  # try "gpt-4o-mini" if provider-prefixed name fails
+    model_name = "openai/gpt-4o-mini"  
 
-    # Call OpenAI-compatible Chat Completions (routed through OpenRouter)
     try:
         response = call_openrouter_chat(prompt, model=model_name, max_tokens=800, temperature=0.2)
     except Exception as e:
