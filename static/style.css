@@ -11,7 +11,7 @@ body {
     color: #1A3A6C;
     display: flex;
     flex-direction: column;
-    background-color: white; /* fixed from #dcc2c2 */
+    background-color: white;
 }
 
 /* Navbar */
@@ -107,8 +107,6 @@ footer {
     padding-top: 60px;
     border-top-right-radius: 20px;
     border-bottom-right-radius: 20px;
-    border-color: black;
-    border-width: 100px;
 }
 
 .sidebar a {
@@ -127,7 +125,6 @@ footer {
     font-weight: bold;
     margin-left: 10px;
     color: white;
-    padding: 0;
 }
 
 .sidebar a:hover {
@@ -141,7 +138,6 @@ footer {
     right: 20px;
     font-size: 5px;
     cursor: pointer;
-    padding: 0;
 }
 
 /* Content */
@@ -149,13 +145,131 @@ footer {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: calc(56vh - 70px);
-    background-color: #ffffff;
+
+    /* FIXED: better layout visibility */
+    min-height: 70vh;
+
+    background-color: transparent;
     text-align: center;
     padding: 20px;
 }
 
+/* ✅ IMPROVED GRADIENT TITLE */
 .content h1 {
-    font-size: 3rem;
-    color: #1A3A6C;
+    background: linear-gradient(90deg, #00A859, #1A3A6C, #00A859);
+
+    background-clip: text;
+    -webkit-background-clip: text;
+
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+
+    font-size: 3.2rem;
+    font-weight: bold;
+
+    /* subtle glow for visibility */
+    text-shadow: 0 2px 10px rgba(0,168,89,0.15);
 }
+
+/* ✅ ROTATING BACKGROUND GLOW */
+body::after {
+    content: "";
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+
+    background: radial-gradient(circle, rgba(0,168,89,0.25), transparent 60%),
+                radial-gradient(circle, rgba(26,58,108,0.25), transparent 60%);
+
+    animation: rotateGlow 20s linear infinite;
+
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Animation */
+@keyframes rotateGlow {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Premium hero layout */
+.content {
+    min-height: 85vh;
+    flex-direction: column;
+    gap: 15px;
+    position: relative;
+}
+
+/* Glassmorphism container */
+.content {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+
+    max-width: 900px;
+    margin: auto;
+
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+}
+
+.content h1 {
+    font-size: 3.5rem;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+
+    background: linear-gradient(90deg, #00A859, #1A3A6C, #00A859);
+    background-size: 200%;
+
+    background-clip: text;              /* add this */
+    -webkit-background-clip: text;      /* keep this */
+
+    color: transparent;
+    -webkit-text-fill-color: transparent; /* optional but better */
+
+    animation: gradientMove 4s linear infinite;
+}
+
+/* Moving gradient */
+@keyframes gradientMove {
+    0% { background-position: 0%; }
+    100% { background-position: 200%; }
+}
+
+.content p {
+    font-size: 1.2rem;
+    max-width: 600px;
+    line-height: 1.6;
+    opacity: 0.8;
+}
+
+.content {
+    animation: fadeUp 1s ease;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.navbar {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.content:hover {
+    transform: translateY(-5px);
+    transition: 0.3s;
+}
+
