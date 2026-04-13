@@ -4,6 +4,7 @@ function openSidebar() {
   sidebar.style.width = "260px";
   document.body.style.overflow = "hidden";
   sidebar.setAttribute("aria-hidden", "false");
+  document.getElementById("sidebar").style.width = "260px";
 }
 
 function closeSidebar() {
@@ -12,6 +13,15 @@ function closeSidebar() {
   sidebar.style.width = "0";
   document.body.style.overflow = "";
   sidebar.setAttribute("aria-hidden", "true");
+  document.getElementById("sidebar").style.width = "0";
+}
+
+function goToCareer() {
+    window.location.href = "/career_guidance";
+}
+
+function goToPage(url) {
+    window.location.href = url;
 }
 
 document.addEventListener("DOMContentLoaded", () => {

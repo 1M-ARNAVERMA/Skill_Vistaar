@@ -23,8 +23,41 @@
 
   <main class="content">
     <h1>Welcome to Skill Vistaar</h1>
-    <p class="subtitle">Personalized career guidance, AI-backed skill gap analysis, salary forecasting, mentorship and networking.</p>
+    <p class="subtitle">
+      Personalized career guidance, AI-backed skill gap analysis, salary forecasting, mentorship and networking.
+    </p>
+    <a href="{{ url_for('career_guidance') }}" class="cta-btn">
+      Get Started
+    </a>
   </main>
+
+  <section class="features">
+    <h2>What We Offer</h2>
+
+    <div class="feature-container">
+
+        <a href="{{ url_for('career_guidance') }}" class="feature-card">
+            <h3>🎯 Career Guidance</h3>
+            <p>Get AI-based career suggestions tailored to your interests.</p>
+        </a>
+
+        <a href="{{ url_for('skill_gap') }}" class="feature-card">
+            <h3>📊 Skill Gap Analysis</h3>
+            <p>Identify missing skills required for your dream job.</p>
+        </a>
+
+        <a href="{{ url_for('salary_forecasting') }}" class="feature-card">
+            <h3>💰 Salary Forecasting</h3>
+            <p>Predict salary trends based on skills and experience.</p>
+        </a>
+
+        <a href="{{ url_for('mentorship') }}" class="feature-card">
+            <h3>🤝 Mentorship</h3>
+            <p>Connect with professionals and grow your network.</p>
+        </a>
+
+    </div>
+  </section>
 
   <footer class="footer-gradient">
     <p>© 2025 Skill Vistaar. All rights reserved.</p>

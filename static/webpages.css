@@ -49,13 +49,15 @@ html, body {
 /* Main content area — center heading and subtitle vertically & horizontally */
 .content {
     display: flex;
-    flex-direction: column;            /* stack heading and subtitle */
-    justify-content: center;           /* vertical centering */
-    align-items: center;               /* horizontal centering */
-    min-height: calc(100vh - 220px);   /* leaves space for header/footer */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    min-height: auto;   /* ✅ FIXED */
+
     background-color: transparent;
     text-align: center;
-    padding: 10px 20px;
+    padding: 200px 20px 200px;  /* slightly adjusted */
     box-sizing: border-box;
 }
 
@@ -161,6 +163,35 @@ footer {
 }
 .close-btn:hover {
     background-color: #00A859;
+}
+
+/* Proper CTA Button */
+.cta-btn {
+    display: inline-block;
+    margin-top: 20px;
+
+    padding: 12px 30px;
+    border-radius: 30px;
+
+    font-size: 1rem;
+    font-weight: 600;
+
+    color: white;
+    text-decoration: none;
+
+    background: linear-gradient(90deg, #00A859, #1A3A6C);
+    background-size: 200%;
+
+    box-shadow: 0 5px 15px rgba(0,168,89,0.4);
+
+    transition: all 0.3s ease;
+}
+
+/* Hover effect */
+.cta-btn:hover {
+    background-position: 100%;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,168,89,0.6);
 }
 
 /* Networking Page Card Style */
@@ -426,6 +457,66 @@ footer {
 }
 .btn-green:hover {
     background: #008F4D;
+}
+
+/* Features Section */
+.features {
+    text-align: center;
+    padding: 20px 20px 60px;
+}
+
+/* Gradient heading for Features */
+.features h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+
+    background: linear-gradient(90deg, #00A859, #1A3A6C, #00A859);
+    background-size: 200%;
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+
+    /* slightly slower than title */
+    animation: gradientMove 3s linear infinite;
+}
+
+.features h2:hover {
+    text-shadow: 0 0 12px rgba(0,168,89,0.4);
+}
+
+.feature-container {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    flex-wrap: wrap;
+}
+
+.feature-card {
+    background: white;
+    padding: 20px;
+    width: 240px;
+
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+
+    transition: 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.feature-card {
+    cursor: pointer;
+}
+
+
+a {
+    text-decoration: none;
 }
 
 /* ✅ ROTATING BACKGROUND GLOW */
